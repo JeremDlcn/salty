@@ -104,7 +104,7 @@ gestion_layout = [
 
 #header of the application
 #------------------------
-logo = [[sg.Image(f'{actual_folder}\logo.png')]]
+logo = [[sg.Image('logo.png')]]
 watermark = [[sg.Text()],[sg.Text('Arthur Geay', size=(70, 1), justification='right')], [sg.Text('Jérémie Delécrin', size=(73, 1), justification='right')]]
 
 #layout of the application
@@ -117,7 +117,7 @@ layout = [
 
 # Create the Window
 window = sg.Window('Salty', layout)
-window.SetIcon(icon=f'{actual_folder}\salty-icon.ico', pngbase64=None)
+window.SetIcon(icon='salty-icon.ico', pngbase64=None)
 
 
 
@@ -158,7 +158,7 @@ while True:
     #AES_list
     update_aes = window['AES_list'].get()
     update_aes = 'Clé actuelle: ' + update_aes[0]
-    #window['display_aes'].update(update_aes)
+    window['display_aes'].update(update_aes)
 
     #bouton de gestion des clés
     if event == 'disable':
