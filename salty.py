@@ -1,11 +1,14 @@
 import PySimpleGUI as sg
 import hashlib as hs
 import os
+import sys
+
 actual_folder = os.path.abspath(".")
 
 sg.theme('Dark Grey 6')  # color theme
 
 def hashing(selected_hash, value):
+    value = bytes(value, 'utf-8')
     if selected_hash == 'SHA-1':
         return hs.sha1(value).hexdigest()
     elif selected_hash == 'SHA-256':
@@ -141,10 +144,6 @@ while True:
     window['path_dechiffr'].update(update_file_path3)
 
 
-#Listes de hash
-
-    #new_hash_chiffr = hashing(update_hash_chiffr[0], )
-
     #Hash Lists
     update_hash = window['hash_list'].get()
     update_hash = 'Hash actuel: ' + update_hash[0]
@@ -179,8 +178,16 @@ while True:
     if event == 'now':
         message_hash = values['message']
         update_hash = window['hash_list'].get()
-        new_hash = hashing(update_hash[0], bytes(message_hash, 'utf-8'))
+        new_hash = hashing(update_hash[0], message_hash)
         window['output_hash'].update(new_hash)
+
+        print(update_file_path)
+        file = open(f'{update_file_path}', 'r')
+        file_hash = hashing(update_hash[0], file.read())
+        window['output_hash'].update(file_hash)
+
+
+
 
     #récupération du nombre de bits utilisées pour créer la clé aes
     bits = values['AES_Bits']
