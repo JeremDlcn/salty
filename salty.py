@@ -2,10 +2,19 @@ import PySimpleGUI as sg
 import hashlib as hs
 import os
 import sys
+import uuid
 
 actual_folder = os.path.abspath(".")
 
 sg.theme('Dark Grey 6')  # color theme
+
+def generateSalt():
+    return uuid.uuid1()
+
+
+def salage():
+    guerande = salt.bytes.hex()
+    return message_encode + guerande
 
 def hashing(selected_hash, value):
     value = bytes(value, 'utf-8')
@@ -20,6 +29,9 @@ def hashing(selected_hash, value):
     elif selected_hash == 'blake2b':
         return hs.blake2b(value).hexdigest()
 
+
+salt = generateSalt()# Génération du sel
+
 #columns for tabs layouts
 #------------------------
 col1_hash = [
@@ -29,7 +41,7 @@ col1_hash = [
     [sg.T()],
     [sg.T('Liste des hash')],
     [sg.Listbox(values=('SHA-1', 'SHA-256', 'SHA-512', 'MD5', 'blake2b'),  size=(30, 5), default_values=["SHA-1"],
- select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='hash_list'), sg.Checkbox('appliquer un salage')],
+ select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='hash_list'), sg.Checkbox('appliquer un salage', key="salage")],
     [sg.Text('Hash actuel: SHA-1', size=(17, 1), relief=sg.RELIEF_RIDGE, key='display_hash', background_color='grey')]
 ]
 
@@ -178,13 +190,18 @@ while True:
     if event == 'now':
         message_hash = values['message']
         update_hash = window['hash_list'].get()
-        new_hash = hashing(update_hash[0], message_hash)
-        window['output_hash'].update(new_hash)
+        message_encode = hashing(update_hash[0], message_hash)
+        if values['salage']:
+            new_hash = salage()
+        else:
+            new_hash = message_encode
 
-        print(update_file_path)
-        file = open(f'{update_file_path}', 'r')
-        file_hash = hashing(update_hash[0], file.read())
-        window['output_hash'].update(file_hash)
+        if update_file_path != '':
+            file = open(f'{update_file_path}', 'r')
+            file_hash = hashing(update_hash[0], file.read())
+            window['output_hash'].update(file_hash)
+        else:
+            window['output_hash'].update(new_hash)
 
 
 
