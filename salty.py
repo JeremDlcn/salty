@@ -5,6 +5,7 @@ import json
 import binascii
 import sys
 import uuid
+import re
 
 actual_folder = os.path.abspath(".")
 
@@ -57,13 +58,19 @@ def getKeysName():
     dataFile = getKeys()
 
     for val in dataFile:
-        names.append(val['name'])
+        if val['activate'] == False:
+            names.append(val['name'] + ' - Clé désactivé')
+        else:
+            names.append(val['name'])
     return names
 
+def writeKeyFile(data):
+    with open('keys.json', 'w') as keys:
+        json.dump(data, keys)
 
 def updateKeyFile(data, name):
     dataFile = getKeys()
-    if isValidKey(dataFile, name):
+    if isValidKey(dataFile, name) :
         dataFile.append(data)
         with open('keys.json', 'w') as keys:
             json.dump(dataFile, keys)
@@ -73,12 +80,28 @@ def addKey(name, key):
     data = {'name': name, 'key': key, 'activate': True}
     updateKeyFile(data, name)
 
+def activateOrDesactivateKey(name, action):
+    key = {}
+    dataFile = getKeys()
+    counter = 0
+    for val in dataFile:
+        if val['name'] == name:
+            key = val
+            if action:
+                key['activate'] = True
+            elif not action:
+                key['activate'] = False
+            dataFile[counter] = key
+        counter += 1
+
+    writeKeyFile(dataFile)
+
+
 
 
 ## Fin gestionnaire de clé ##
 
 salt = generateSalt()# Génération du sel
-
 
 
 #columns for tabs layouts
@@ -219,16 +242,6 @@ while True:
     window['display_aes'].update(update_aes)
 
     #bouton de gestion des clés
-    if event == 'disable':
-        selected_aes = window['gestion_list'].get()
-        aes_complete = window['gestion_list'].get_list_values()
-        aes_complete = list(aes_complete)
-        i = 0
-        for x in aes_complete:
-            if x == selected_aes[0]:
-                aes_complete[i] = '(disabled)' + selected_aes[0]
-            i = i + 1
-        lists = window['gestion_list'].update(values=aes_complete)
 
     if event == 'delete':
         deleted_aes = window['gestion_list'].get()
@@ -253,15 +266,32 @@ while True:
 
 
 
+    ## Evènements du gestionnaire de clé ##
 
     # Evènement pour générer une clé
     if event == 'addKey':
-        bits = values['AES_Bits']
-        key = generateKey(bits)
-        nameKey = values['create']
-        addKey(nameKey, key)
+        if values['create'] != '':
+            bits = values['AES_Bits']
+            key = generateKey(bits)
+            nameKey = values['create']
+            addKey(nameKey, key)
+            window['gestion_list'].update(values=getKeysName())
+
+
+    if event == 'disable':
+        selected_key = window['gestion_list'].get()
+        activateOrDesactivateKey(selected_key[0], False)
         window['gestion_list'].update(values=getKeysName())
 
+
+    if event == 'activate':
+        selected_key = window['gestion_list'].get()
+
+        if re.search(' - Clé désactivé', selected_key[0]):
+            selected_key = selected_key[0].replace(' - Clé désactivé', '')
+
+        activateOrDesactivateKey(selected_key, True)
+        window['gestion_list'].update(values=getKeysName())
 
 
 window.close()
