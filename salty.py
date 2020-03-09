@@ -14,9 +14,9 @@ def generateSalt():
     return uuid.uuid1()
 
 
-def salage():
+def salage(encode):
     guerande = salt.bytes.hex()
-    return message_encode + guerande
+    return encode + guerande
 
 def hashing(selected_hash, value):
     value = bytes(value, 'utf-8')
@@ -73,6 +73,7 @@ def addKey(name, key):
 col1_hash = [
     [sg.T('Hacher un fichier')],
     [sg.Input(key='path'), sg.FileBrowse('Importer un fichier', key='browse', button_color=('white', 'black'))],
+    [sg.Button('Hasher le fichier', button_color=('black', 'lightblue'), size=(13, 1), key='file_now')],
     [sg.T()],
     [sg.T()],
     [sg.T('Liste des hash')],
@@ -84,11 +85,11 @@ col1_hash = [
 col2_hash = [
     [sg.T('Hacher un message')],
     [sg.Input(key='message')],
+    [sg.Button('Hasher', button_color=('black', 'lightblue'), size=(6, 1), key='now')],
     [sg.T()],
     [sg.T()],
     [sg.T('Résultat')],
-    [sg.Text('', size=(40, 5), relief=sg.RELIEF_RIDGE, key='output_hash')],
-    [sg.Button('Hasher', button_color=('black', 'lightblue'), size=(20, 1), key='now')]
+    [sg.Text('', size=(40, 5), relief=sg.RELIEF_RIDGE, key='output_hash')]
 ]
 
 col1_chiffr = [
@@ -226,16 +227,21 @@ while True:
         update_hash = window['hash_list'].get()
         message_encode = hashing(update_hash[0], message_hash)
         if values['salage']:
-            new_hash = salage()
+            new_hash = salage(message_encode)
         else:
             new_hash = message_encode
+        window['output_hash'].update(new_hash)
 
-        if update_file_path != '':
-            file = open(f'{update_file_path}', 'r')
-            file_hash = hashing(update_hash[0], file.read())
-            window['output_hash'].update(file_hash)
+    if event == 'file_now':
+        file = open(f'{update_file_path}', 'r')
+        update_hash = window['hash_list'].get()
+        file_encode = hashing(update_hash[0], file.read())
+        if values['salage']:
+            file_hash = salage(file_encode)
         else:
-            window['output_hash'].update(new_hash)
+            file_hash = file_encode
+        window['output_hash'].update(file_hash)
+
 
 
 
