@@ -144,17 +144,16 @@ while True:
 
 #Listes de hash
 
-    #récupération
-    update_hash_chiffr = window['hash_list_chiffr'].get()
-
-    #transformation du message
-
     #new_hash_chiffr = hashing(update_hash_chiffr[0], )
-    #update_hash = 'Hash actuel: ' + update_hash[0]
-    #update_hash_chiffr = 'Hash actuel: ' + update_hash_chiffr[0]
-    
-    #window['display_hash'].update(update_hash)
-    #window['display_hash_chiffr'].update(update_hash_chiffr)
+
+    #Hash Lists
+    update_hash = window['hash_list'].get()
+    update_hash = 'Hash actuel: ' + update_hash[0]
+    window['display_hash'].update(update_hash)
+
+    update_hash_chiffr = window['hash_list_chiffr'].get()
+    update_hash_chiffr = 'Hash actuel: ' + update_hash_chiffr[0]
+    window['display_hash_chiffr'].update(update_hash_chiffr)
 
     #AES_list
     update_aes = window['AES_list'].get()
@@ -181,7 +180,7 @@ while True:
     if event == 'now':
         message_hash = values['message']
         update_hash = window['hash_list'].get()
-        new_hash = hashing(update_hash[0], message_hash)
+        #new_hash = hashing(update_hash[0], message_hash)
         window['path'].update(message_hash)
 
     #récupération du nombre de bits utilisées pour créer la clé aes
