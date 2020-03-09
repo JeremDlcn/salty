@@ -1,5 +1,7 @@
 import PySimpleGUI as sg
 import hashlib as hs
+import os
+actual_folder = os.path.abspath(".")
 
 sg.theme('Dark Grey 6')  # color theme
 
@@ -36,7 +38,7 @@ col2_hash = [
     [sg.T()],
     [sg.T('Résultat')],
     [sg.Text('', size=(40, 5), relief=sg.RELIEF_RIDGE, key='output_hash')],
-    [sg.Button('Hasher', button_color=('black', 'lightblue'), size=(20, 1), key='hash_now')]
+    [sg.Button('Hasher', button_color=('black', 'lightblue'), size=(20, 1), key='now')]
 ]
 
 col1_chiffr = [
@@ -102,7 +104,7 @@ gestion_layout = [
 
 #header of the application
 #------------------------
-logo = [[sg.Image(r'salty\logo.png')]]
+logo = [[sg.Image(f'{actual_folder}\logo.png')]]
 watermark = [[sg.Text()],[sg.Text('Arthur Geay', size=(70, 1), justification='right')], [sg.Text('Jérémie Delécrin', size=(73, 1), justification='right')]]
 
 #layout of the application
@@ -115,7 +117,7 @@ layout = [
 
 # Create the Window
 window = sg.Window('Salty', layout)
-window.SetIcon(icon=r'salty\salty-icon.ico', pngbase64=None)
+window.SetIcon(icon=f'{actual_folder}\salty-icon.ico', pngbase64=None)
 
 
 
@@ -128,12 +130,8 @@ while True:
     if event in (None, 'Cancel'):  # if user closes window or clicks cancel
         break
 
-#hashage du message
-    if event == 'hash_now':
-        message_hash = values['message']
-        update_hash = window['hash_list'].get()
-        new_hash = hashing(update_hash[0], message_hash)
-        #window['output'].update(new_hash)
+
+
 
 #input browing file
     update_file_path = values['browse']
@@ -151,17 +149,17 @@ while True:
 
     #transformation du message
 
-    new_hash_chiffr = hashing(update_hash_chiffr[0])
-    update_hash = 'Hash actuel: ' + update_hash[0]
-    update_hash_chiffr = 'Hash actuel: ' + update_hash_chiffr[0]
+    #new_hash_chiffr = hashing(update_hash_chiffr[0], )
+    #update_hash = 'Hash actuel: ' + update_hash[0]
+    #update_hash_chiffr = 'Hash actuel: ' + update_hash_chiffr[0]
     
-    window['display_hash'].update(update_hash)
-    window['display_hash_chiffr'].update(update_hash_chiffr)
+    #window['display_hash'].update(update_hash)
+    #window['display_hash_chiffr'].update(update_hash_chiffr)
 
     #AES_list
     update_aes = window['AES_list'].get()
     update_aes = 'Clé actuelle: ' + update_aes[0]
-    window['display_aes'].update(update_aes)
+    #window['display_aes'].update(update_aes)
 
     #bouton de gestion des clés
     if event == 'disable':
@@ -180,11 +178,13 @@ while True:
         deleted_aes = deleted_aes[0]
         #supprimer dans le tableau de variable
 
+    if event == 'now':
+        message_hash = values['message']
+        update_hash = window['hash_list'].get()
+        new_hash = hashing(update_hash[0], message_hash)
+        window['path'].update(message_hash)
 
     #récupération du nombre de bits utilisées pour créer la clé aes
     bits = values['AES_Bits']
 
-
 window.close()
-
-
