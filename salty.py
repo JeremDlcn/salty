@@ -32,9 +32,6 @@ def hashing(selected_hash, value):
         return hs.blake2b(value).hexdigest()
 
 
-salt = generateSalt()# Génération du sel
-
-
 ## Gestionnaire de clé ##
 def generateKey(bits):
     if bits == '128':
@@ -50,21 +47,37 @@ def isValidKey(dataFile, keyName):
             return False
     return True
 
-
-def updateKeyFile(data, name):
+def getKeys():
     with open('keys.json') as keys:
         dataFile = json.load(keys)
-        if isValidKey(dataFile, name):
-            dataFile.append(data)
-            with open('keys.json', 'w') as keys:
-                json.dump(dataFile, keys)
+    return dataFile
+
+def getKeysName():
+    names = []
+    dataFile = getKeys()
+
+    for val in dataFile:
+        names.append(val['name'])
+    return names
+
+
+def updateKeyFile(data, name):
+    dataFile = getKeys()
+    if isValidKey(dataFile, name):
+        dataFile.append(data)
+        with open('keys.json', 'w') as keys:
+            json.dump(dataFile, keys)
 
 
 def addKey(name, key):
     data = {'name': name, 'key': key, 'activate': True}
     updateKeyFile(data, name)
 
+
+
 ## Fin gestionnaire de clé ##
+
+salt = generateSalt()# Génération du sel
 
 
 
@@ -118,6 +131,7 @@ col4_chiffr = [
 ]
 
 col_gestion = [
+    [sg.Button('Activer la clé',  button_color=('black', 'gray'), key='activate', enable_events='true')],
     [sg.Button('Désactiver la clé', button_color=('black', 'gray'), key='disable', enable_events='true')],
     [sg.Button('Supprimer la clé ', button_color=('black', 'red'), key='delete', enable_events='true')]
 ]
@@ -148,7 +162,7 @@ gestion_layout = [
     [sg.Text('Création d\'une clé AES'), sg.T(' ' * 42), sg.Text('Nombre de bits')],
     [sg.Input(key='create', do_not_clear=False), sg.Combo(['128', '192', '256'], size=(12, 1), default_value='128', enable_events='true', key='AES_Bits'), sg.Button('Créer la clé ', button_color=('black', 'white'), enable_events='true', key='addKey')],
     [sg.Text('Gestionnaire de clé', font='Arial 12')],
-    [sg.Listbox(values=('KAES1', 'KAES2', 'KAES3', 'KAES4', 'KAES5'), size=(30, 5), default_values=["KAES1"],
+    [sg.Listbox(values=(getKeysName()), size=(30, 5), default_values=["KAES1"],
                 select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='gestion_list'), sg.Column(col_gestion)]
 ]
 
@@ -246,6 +260,7 @@ while True:
         key = generateKey(bits)
         nameKey = values['create']
         addKey(nameKey, key)
+        window['gestion_list'].update(values=getKeysName())
 
 
 
