@@ -3,23 +3,36 @@ import hashlib as hs
 import os
 import json
 import binascii
+import sys
+import uuid
 
 actual_folder = os.path.abspath(".")
 
 sg.theme('Dark Grey 6')  # color theme
 
+def generateSalt():
+    return uuid.uuid1()
+
+
+def salage():
+    guerande = salt.bytes.hex()
+    return message_encode + guerande
+
 def hashing(selected_hash, value):
-    print(selected_hash)
+    value = bytes(value, 'utf-8')
     if selected_hash == 'SHA-1':
-        return hs.sha1(value)
+        return hs.sha1(value).hexdigest()
     elif selected_hash == 'SHA-256':
-        return hs.sha256(value)
+        return hs.sha256(value).hexdigest()
     elif selected_hash == 'SHA-512':
-        return hs.sha512(value)
+        return hs.sha512(value).hexdigest()
     elif selected_hash == 'MD5':
-        return hs.md5(value)
+        return hs.md5(value).hexdigest()
     elif selected_hash == 'blake2b':
-        return hs.blake2b(value)
+        return hs.blake2b(value).hexdigest()
+
+
+salt = generateSalt()# Génération du sel
 
 
 ## Gestionnaire de clé ##
@@ -64,7 +77,7 @@ col1_hash = [
     [sg.T()],
     [sg.T('Liste des hash')],
     [sg.Listbox(values=('SHA-1', 'SHA-256', 'SHA-512', 'MD5', 'blake2b'),  size=(30, 5), default_values=["SHA-1"],
- select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='hash_list'), sg.Checkbox('appliquer un salage')],
+ select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='hash_list'), sg.Checkbox('appliquer un salage', key="salage")],
     [sg.Text('Hash actuel: SHA-1', size=(17, 1), relief=sg.RELIEF_RIDGE, key='display_hash', background_color='grey')]
 ]
 
@@ -177,10 +190,6 @@ while True:
     window['path_dechiffr'].update(update_file_path3)
 
 
-#Listes de hash
-
-    #new_hash_chiffr = hashing(update_hash_chiffr[0], )
-
     #Hash Lists
     update_hash = window['hash_list'].get()
     update_hash = 'Hash actuel: ' + update_hash[0]
@@ -215,8 +224,21 @@ while True:
     if event == 'now':
         message_hash = values['message']
         update_hash = window['hash_list'].get()
-        #new_hash = hashing(update_hash[0], message_hash)
-        window['path'].update(message_hash)
+        message_encode = hashing(update_hash[0], message_hash)
+        if values['salage']:
+            new_hash = salage()
+        else:
+            new_hash = message_encode
+
+        if update_file_path != '':
+            file = open(f'{update_file_path}', 'r')
+            file_hash = hashing(update_hash[0], file.read())
+            window['output_hash'].update(file_hash)
+        else:
+            window['output_hash'].update(new_hash)
+
+
+
 
     # Evènement pour générer une clé
     if event == 'addKey':
