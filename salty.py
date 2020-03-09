@@ -1,6 +1,9 @@
 import PySimpleGUI as sg
 import hashlib as hs
 import os
+import json
+import binascii
+
 actual_folder = os.path.abspath(".")
 
 sg.theme('Dark Grey 6')  # color theme
@@ -17,6 +20,40 @@ def hashing(selected_hash, value):
         return hs.md5(value)
     elif selected_hash == 'blake2b':
         return hs.blake2b(value)
+
+
+## Gestionnaire de clé ##
+def generateKey(bits):
+    if bits == '128':
+        return binascii.hexlify(os.urandom(16)).decode()
+    elif bits == '192':
+        return binascii.hexlify(os.urandom(24)).decode()
+    elif bits == '256':
+        return binascii.hexlify(os.urandom(32)).decode()
+
+def isValidKey(dataFile, keyName):
+    for val in dataFile:
+        if val['name'] == keyName:
+            return False
+    return True
+
+
+def updateKeyFile(data, name):
+    with open('keys.json') as keys:
+        dataFile = json.load(keys)
+        if isValidKey(dataFile, name):
+            dataFile.append(data)
+            with open('keys.json', 'w') as keys:
+                json.dump(dataFile, keys)
+
+
+def addKey(name, key):
+    data = {'name': name, 'key': key, 'activate': True}
+    updateKeyFile(data, name)
+
+## Fin gestionnaire de clé ##
+
+
 
 #columns for tabs layouts
 #------------------------
@@ -96,7 +133,7 @@ chiffr_layout = [
 gestion_layout = [
     [sg.T()],
     [sg.Text('Création d\'une clé AES'), sg.T(' ' * 42), sg.Text('Nombre de bits')],
-    [sg.Input(key='create'), sg.Combo(['128', '192', '256'], size=(12, 1), default_value='128', enable_events=True, key='AES_Bits'), sg.Button('Créer la clé ', button_color=('black', 'white'))],
+    [sg.Input(key='create', do_not_clear=False), sg.Combo(['128', '192', '256'], size=(12, 1), default_value='128', enable_events='true', key='AES_Bits'), sg.Button('Créer la clé ', button_color=('black', 'white'), enable_events='true', key='addKey')],
     [sg.Text('Gestionnaire de clé', font='Arial 12')],
     [sg.Listbox(values=('KAES1', 'KAES2', 'KAES3', 'KAES4', 'KAES5'), size=(30, 5), default_values=["KAES1"],
                 select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='gestion_list'), sg.Column(col_gestion)]
@@ -118,8 +155,6 @@ layout = [
 # Create the Window
 window = sg.Window('Salty', layout)
 window.SetIcon(icon='salty-icon.ico', pngbase64=None)
-
-
 
 
 
@@ -183,7 +218,13 @@ while True:
         #new_hash = hashing(update_hash[0], message_hash)
         window['path'].update(message_hash)
 
-    #récupération du nombre de bits utilisées pour créer la clé aes
-    bits = values['AES_Bits']
+    # Evènement pour générer une clé
+    if event == 'addKey':
+        bits = values['AES_Bits']
+        key = generateKey(bits)
+        nameKey = values['create']
+        addKey(nameKey, key)
+
+
 
 window.close()
