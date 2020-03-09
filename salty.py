@@ -6,17 +6,16 @@ actual_folder = os.path.abspath(".")
 sg.theme('Dark Grey 6')  # color theme
 
 def hashing(selected_hash, value):
-    print(selected_hash)
     if selected_hash == 'SHA-1':
-        return hs.sha1(value)
+        return hs.sha1(value).hexdigest()
     elif selected_hash == 'SHA-256':
-        return hs.sha256(value)
+        return hs.sha256(value).hexdigest()
     elif selected_hash == 'SHA-512':
-        return hs.sha512(value)
+        return hs.sha512(value).hexdigest()
     elif selected_hash == 'MD5':
-        return hs.md5(value)
+        return hs.md5(value).hexdigest()
     elif selected_hash == 'blake2b':
-        return hs.blake2b(value)
+        return hs.blake2b(value).hexdigest()
 
 #columns for tabs layouts
 #------------------------
@@ -180,8 +179,8 @@ while True:
     if event == 'now':
         message_hash = values['message']
         update_hash = window['hash_list'].get()
-        #new_hash = hashing(update_hash[0], message_hash)
-        window['path'].update(message_hash)
+        new_hash = hashing(update_hash[0], bytes(message_hash, 'utf-8'))
+        window['output_hash'].update(new_hash)
 
     #récupération du nombre de bits utilisées pour créer la clé aes
     bits = values['AES_Bits']
