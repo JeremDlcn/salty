@@ -1,8 +1,20 @@
 import PySimpleGUI as sg
+import hashlib as hs
 
 sg.theme('Dark Grey 6')  # color theme
 
-
+def hashing(selected_hash, value):
+    print(selected_hash)
+    if selected_hash == 'SHA-1':
+        return hs.sha1(value)
+    elif selected_hash == 'SHA-256':
+        return hs.sha256(value)
+    elif selected_hash == 'SHA-512':
+        return hs.sha512(value)
+    elif selected_hash == 'MD5':
+        return hs.md5(value)
+    elif selected_hash == 'blake2b':
+        return hs.blake2b(value)
 
 #columns for tabs layouts
 #------------------------
@@ -14,7 +26,7 @@ col1_hash = [
     [sg.T('Liste des hash')],
     [sg.Listbox(values=('SHA-1', 'SHA-256', 'SHA-512', 'MD5', 'blake2b'),  size=(30, 5), default_values=["SHA-1"],
  select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='hash_list'), sg.Checkbox('appliquer un salage')],
-    [sg.Text('Hash actuel: SHA-1', size=(17, 1), relief=sg.RELIEF_RIDGE, key='output_hash', background_color='grey')]
+    [sg.Text('Hash actuel: SHA-1', size=(17, 1), relief=sg.RELIEF_RIDGE, key='display_hash', background_color='grey')]
 ]
 
 col2_hash = [
@@ -23,22 +35,22 @@ col2_hash = [
     [sg.T()],
     [sg.T()],
     [sg.T('Résultat')],
-    [sg.Text('', size=(40, 5), relief=sg.RELIEF_RIDGE, key='output')],
-    [sg.Button('Hasher', button_color=('black', 'lightblue'), size=(20, 1))]
+    [sg.Text('', size=(40, 5), relief=sg.RELIEF_RIDGE, key='output_hash')],
+    [sg.Button('Hasher', button_color=('black', 'lightblue'), size=(20, 1), key='hash_now')]
 ]
 
 col1_chiffr = [
     [sg.T('Liste des hash')],
     [sg.Listbox(values=('SHA-1', 'SHA-256', 'SHA-512', 'MD5', 'blake2b'),  size=(30, 5), default_values=["SHA-1"],
- select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='hash_list2')],
-    [sg.Text('Hash actuel: SHA-1', size=(17, 1), relief=sg.RELIEF_RIDGE, key='output_hash2', background_color='grey')]
+ select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='hash_list_chiffr')],
+    [sg.Text('Hash actuel: SHA-1', size=(17, 1), relief=sg.RELIEF_RIDGE, key='display_hash_chiffr', background_color='grey')]
 ]
 
 col2_chiffr = [
     [sg.T('Liste des clés')],
     [sg.Listbox(values=('KAES1', 'KAES2', 'KAES3', 'KAES4', 'KAES5'), size=(30, 5), default_values=["KAES1"],
  select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='AES_list')],
-    [sg.Text('Clé actuelle: KAES1', size=(17, 1), relief=sg.RELIEF_RIDGE, key='output_aes', background_color='grey')]
+    [sg.Text('Clé actuelle: KAES1', size=(17, 1), relief=sg.RELIEF_RIDGE, key='display_aes', background_color='grey')]
 ]
 
 col3_chiffr = [
@@ -90,7 +102,7 @@ gestion_layout = [
 
 #header of the application
 #------------------------
-logo = [[sg.Image(r'C:\Users\Jerem\Documents\Langage Python\testUI\logo.png')]]
+logo = [[sg.Image(r'salty\logo.png')]]
 watermark = [[sg.Text()],[sg.Text('Arthur Geay', size=(70, 1), justification='right')], [sg.Text('Jérémie Delécrin', size=(73, 1), justification='right')]]
 
 #layout of the application
@@ -103,7 +115,7 @@ layout = [
 
 # Create the Window
 window = sg.Window('Salty', layout)
-window.SetIcon(icon=r'C:\Users\Jerem\Documents\Langage Python\testUI\salty-icon.ico', pngbase64=None)
+window.SetIcon(icon=r'salty\salty-icon.ico', pngbase64=None)
 
 
 
@@ -116,11 +128,14 @@ while True:
     if event in (None, 'Cancel'):  # if user closes window or clicks cancel
         break
 
-    #hashage du message
-    message_hash = values['message']
-    window['output'].update(message_hash)
+#hashage du message
+    if event == 'hash_now':
+        message_hash = values['message']
+        update_hash = window['hash_list'].get()
+        new_hash = hashing(update_hash[0], message_hash)
+        #window['output'].update(new_hash)
 
-    #input browing file
+#input browing file
     update_file_path = values['browse']
     update_file_path2 = values['browse_chiffr']
     update_file_path3 = values['browse_dechiffr']
@@ -128,19 +143,25 @@ while True:
     window['path_chiffr'].update(update_file_path2)
     window['path_dechiffr'].update(update_file_path3)
 
-    #hashlist
-    update_hash = window['hash_list'].get()
-    update_hash = 'Hash actuel: ' + update_hash[0]
-    window['output_hash'].update(update_hash)
 
-    update_hash2 = window['hash_list2'].get()
-    update_hash2 = 'Hash actuel: ' + update_hash2[0]
-    window['output_hash2'].update(update_hash2)
+#Listes de hash
+
+    #récupération
+    update_hash_chiffr = window['hash_list_chiffr'].get()
+
+    #transformation du message
+
+    new_hash_chiffr = hashing(update_hash_chiffr[0])
+    update_hash = 'Hash actuel: ' + update_hash[0]
+    update_hash_chiffr = 'Hash actuel: ' + update_hash_chiffr[0]
+    
+    window['display_hash'].update(update_hash)
+    window['display_hash_chiffr'].update(update_hash_chiffr)
 
     #AES_list
     update_aes = window['AES_list'].get()
     update_aes = 'Clé actuelle: ' + update_aes[0]
-    window['output_aes'].update(update_aes)
+    window['display_aes'].update(update_aes)
 
     #bouton de gestion des clés
     if event == 'disable':
@@ -165,3 +186,5 @@ while True:
 
 
 window.close()
+
+
