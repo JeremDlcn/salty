@@ -13,7 +13,6 @@ sg.theme('Dark Grey 6')  # color theme
 def generateSalt():
     return uuid.uuid1()
 
-
 def salage(encode):
     guerande = salt.bytes.hex()
     return encode + guerande
@@ -36,7 +35,7 @@ salt = generateSalt()# Génération du sel
 
 
 ## Gestionnaire de clé ##
-def generateKey(bits):
+def generate_key(bits):
     if bits == '128':
         return binascii.hexlify(os.urandom(16)).decode()
     elif bits == '192':
@@ -44,25 +43,26 @@ def generateKey(bits):
     elif bits == '256':
         return binascii.hexlify(os.urandom(32)).decode()
 
-def isValidKey(dataFile, keyName):
+
+def is_valid_key(dataFile, keyName):
     for val in dataFile:
         if val['name'] == keyName:
             return False
     return True
 
 
-def updateKeyFile(data, name):
+def update_key_file(data, name):
     with open('keys.json') as keys:
         dataFile = json.load(keys)
-        if isValidKey(dataFile, name):
+        if is_valid_key(dataFile, name):
             dataFile.append(data)
             with open('keys.json', 'w') as keys:
                 json.dump(dataFile, keys)
 
 
-def addKey(name, key):
+def add_key(name, key):
     data = {'name': name, 'key': key, 'activate': True}
-    updateKeyFile(data, name)
+    update_key_file(data, name)
 
 ## Fin gestionnaire de clé ##
 
@@ -109,13 +109,13 @@ col2_chiffr = [
 col3_chiffr = [
     [sg.T('Chiffrement', font='Arial 11')],
     [sg.Input(size=(30, 1), key='path_chiffr'), sg.FileBrowse('Importer un fichier', key='browse_chiffr', button_color=('white', 'black'))],
-    [sg.Button('Chiffrer le fichier ', button_color=('black', 'lightblue'))]
+    [sg.Button('Chiffrer le fichier ', button_color=('black', 'lightblue'), key='chiffr_now')]
 ]
 
 col4_chiffr = [
     [sg.T('Déchiffrement', font='Arial 11')],
     [sg.Input(size=(30, 1), key='path_dechiffr'), sg.FileBrowse('Importer un fichier', key='browse_dechiffr', button_color=('white', 'black'))],
-    [sg.Button('Déchiffrer le fichier ', button_color=('black', 'lightblue'))]
+    [sg.Button('Déchiffrer le fichier ', button_color=('black', 'lightblue'), key='dechiffr_now')]
 ]
 
 col_gestion = [
@@ -147,7 +147,7 @@ chiffr_layout = [
 gestion_layout = [
     [sg.T()],
     [sg.Text('Création d\'une clé AES'), sg.T(' ' * 42), sg.Text('Nombre de bits')],
-    [sg.Input(key='create', do_not_clear=False), sg.Combo(['128', '192', '256'], size=(12, 1), default_value='128', enable_events='true', key='AES_Bits'), sg.Button('Créer la clé ', button_color=('black', 'white'), enable_events='true', key='addKey')],
+    [sg.Input(key='display_create', do_not_clear=False), sg.Combo(['128', '192', '256'], size=(12, 1), default_value='128', enable_events='true', key='AES_Bits'), sg.Button('Créer la clé ', button_color=('black', 'white'), enable_events='true', key='create_key')],
     [sg.Text('Gestionnaire de clé', font='Arial 12')],
     [sg.Listbox(values=('KAES1', 'KAES2', 'KAES3', 'KAES4', 'KAES5'), size=(30, 5), default_values=["KAES1"],
                 select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='gestion_list'), sg.Column(col_gestion)]
@@ -182,7 +182,7 @@ while True:
 
 
 
-#input browing file
+    #input browsing file
     update_file_path = values['browse']
     update_file_path2 = values['browse_chiffr']
     update_file_path3 = values['browse_dechiffr']
@@ -200,28 +200,15 @@ while True:
     update_hash_chiffr = 'Hash actuel: ' + update_hash_chiffr[0]
     window['display_hash_chiffr'].update(update_hash_chiffr)
 
+
     #AES_list
     update_aes = window['AES_list'].get()
     update_aes = 'Clé actuelle: ' + update_aes[0]
     window['display_aes'].update(update_aes)
 
-    #bouton de gestion des clés
-    if event == 'disable':
-        selected_aes = window['gestion_list'].get()
-        aes_complete = window['gestion_list'].get_list_values()
-        aes_complete = list(aes_complete)
-        i = 0
-        for x in aes_complete:
-            if x == selected_aes[0]:
-                aes_complete[i] = '(disabled)' + selected_aes[0]
-            i = i + 1
-        lists = window['gestion_list'].update(values=aes_complete)
 
-    if event == 'delete':
-        deleted_aes = window['gestion_list'].get()
-        deleted_aes = deleted_aes[0]
-        #supprimer dans le tableau de variable
-
+#Events Hachage
+    #hachage d'un message
     if event == 'now':
         try:
 
@@ -237,6 +224,7 @@ while True:
         except:
             sg.Popup('Vous n\'avez pas écrit de message', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
 
+    #hachage de fichier
     if event == 'file_now':
         try:
             file = open(f'{update_file_path}', 'r')
@@ -251,18 +239,58 @@ while True:
             sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
 
 
+#Events Chiffrement/Déchiffrement
+
+    #chiffrement d'un fichier
+    if event == 'chiffr_now':
+        try:
+            file = open(f'{update_file_path2}', 'r')
+            update_hash = window['hash_list'].get()
+            file_encode = hashing(update_hash[0], file.read())
+            file_hash = salage(file_encode)
+            var = '2'
+        except:
+            sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+
+
+    #dechiffrement d'un fichier
+    if event == 'dechiffr_now':
+        try:
+            file = open(f'{update_file_path3}', 'r')
+            update_hash = window['hash_list'].get()
+            file_encode = hashing(update_hash[0], file.read())
+            file_hash = salage(file_encode)
+        except:
+            sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
 
 
 
+#Events Gestion des clés AES
 
-
-    # Evènement pour générer une clé
-    if event == 'addKey':
+    #Création d'une clé
+    if event == 'create_key':
         bits = values['AES_Bits']
-        key = generateKey(bits)
-        nameKey = values['create']
-        addKey(nameKey, key)
+        key = generate_key(bits)
+        nameKey = values['display_create']
+        add_key(nameKey, key)
 
+    #Désactivation d'une clé AES
+    if event == 'disable':
+        selected_aes = window['gestion_list'].get()
+        aes_complete = window['gestion_list'].get_list_values()
+        aes_complete = list(aes_complete)
+        i = 0
+        for x in aes_complete:
+            if x == selected_aes[0]:
+                aes_complete[i] = '(disabled)' + selected_aes[0]
+            i = i + 1
+        lists = window['gestion_list'].update(values=aes_complete)
+
+    #Suppression d'une clé AES
+    if event == 'delete':
+        deleted_aes = window['gestion_list'].get()
+        deleted_aes = deleted_aes[0]
+        #supprimer dans le tableau de variable
 
 
 window.close()
