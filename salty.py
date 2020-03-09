@@ -73,7 +73,7 @@ def addKey(name, key):
 col1_hash = [
     [sg.T('Hacher un fichier')],
     [sg.Input(key='path'), sg.FileBrowse('Importer un fichier', key='browse', button_color=('white', 'black'))],
-    [sg.Button('Hasher le fichier', button_color=('black', 'lightblue'), size=(13, 1), key='file_now')],
+    [sg.Button('Hacher le fichier', button_color=('black', 'lightblue'), size=(13, 1), key='file_now')],
     [sg.T()],
     [sg.T()],
     [sg.T('Liste des hash')],
@@ -85,7 +85,7 @@ col1_hash = [
 col2_hash = [
     [sg.T('Hacher un message')],
     [sg.Input(key='message')],
-    [sg.Button('Hasher', button_color=('black', 'lightblue'), size=(6, 1), key='now')],
+    [sg.Button('Hacher', button_color=('black', 'lightblue'), size=(6, 1), key='now')],
     [sg.T()],
     [sg.T()],
     [sg.T('Résultat')],
@@ -223,24 +223,34 @@ while True:
         #supprimer dans le tableau de variable
 
     if event == 'now':
-        message_hash = values['message']
-        update_hash = window['hash_list'].get()
-        message_encode = hashing(update_hash[0], message_hash)
-        if values['salage']:
-            new_hash = salage(message_encode)
-        else:
-            new_hash = message_encode
-        window['output_hash'].update(new_hash)
+        try:
+
+            message_hash = values['message']
+            assert message_hash != ''
+            update_hash = window['hash_list'].get()
+            message_encode = hashing(update_hash[0], message_hash)
+            if values['salage']:
+                new_hash = salage(message_encode)
+            else:
+                new_hash = message_encode
+            window['output_hash'].update(new_hash)
+        except:
+            sg.Popup('Vous n\'avez pas écrit de message', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
 
     if event == 'file_now':
-        file = open(f'{update_file_path}', 'r')
-        update_hash = window['hash_list'].get()
-        file_encode = hashing(update_hash[0], file.read())
-        if values['salage']:
-            file_hash = salage(file_encode)
-        else:
-            file_hash = file_encode
-        window['output_hash'].update(file_hash)
+        try:
+            file = open(f'{update_file_path}', 'r')
+            update_hash = window['hash_list'].get()
+            file_encode = hashing(update_hash[0], file.read())
+            if values['salage']:
+                file_hash = salage(file_encode)
+            else:
+                file_hash = file_encode
+            window['output_hash'].update(file_hash)
+        except:
+            sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+
+
 
 
 
