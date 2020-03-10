@@ -302,26 +302,6 @@ while True:
 
 
 
-#Events Gestion des clés AES
-
-    if event == 'now':
-        message_hash = values['message']
-        update_hash = window['hash_list'].get()
-        message_encode = hashing(update_hash[0], message_hash)
-        if values['salage']:
-            new_hash = salage()
-        else:
-            new_hash = message_encode
-
-        if update_file_path != '':
-            file = open(f'{update_file_path}', 'r')
-            file_hash = hashing(update_hash[0], file.read())
-            window['output_hash'].update(file_hash)
-        else:
-            window['output_hash'].update(new_hash)
-
-
-
     ## Evènements du gestionnaire de clé ##
 
     #Création d'une clé
