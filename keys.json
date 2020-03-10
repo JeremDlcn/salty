@@ -1,1 +1,22 @@
-[{"name": "macle", "key": "938590a47449384e3d82b3fe2a2e0727", "activate": true}, {"name": "test", "key": "5ae1222891057c39526b96dd6869e299", "activate": false}]
+[
+   {
+      "name": "test",
+      "key": "9a44a2d386a85c150de4199126fb2996",
+      "activate": true
+   },
+   {
+      "name": "ma cle",
+      "key": "2881be9813929a4c050f2d32b231919b65f719e1b433a71754d23211cc8431e7",
+      "activate": true
+   },
+   {
+      "name": "te",
+      "key": "737f015ba2e1a094669648b751d1eaa2",
+      "activate": true
+   },
+   {
+      "name": "eeee",
+      "key": "564b948ed3157bbc62d53c7b00e6a662",
+      "activate": true
+   }
+]

@@ -66,14 +66,14 @@ def get_keys_name():
 
 def write_key_file(data):
     with open('keys.json', 'w') as keys:
-        json.dump(data, keys)
+        json.dump(data, keys, indent=3)
 
 def update_key_file(data, name):
     dataFile = get_keys()
     if is_valid_key(dataFile, name) :
         dataFile.append(data)
         with open('keys.json', 'w') as keys:
-            json.dump(dataFile, keys)
+            json.dump(dataFile, keys, indent=3)
 
 
 def add_key(name, key):
@@ -328,6 +328,8 @@ while True:
             key = generate_key(bits)
             add_key(nameKey, key)
             window['gestion_list'].update(values=get_keys_name())
+            sg.Popup('La clé ' + nameKey + ' a été créée avec succès', title='Succès', custom_text=' Fermer ',
+                     button_color=('black', 'lightblue'), icon='close.ico')
         except AssertionError:
             sg.Popup('Veuillez nommer la clé pour générer une nouvelle clé', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
