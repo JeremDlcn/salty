@@ -11,7 +11,7 @@ actual_folder = os.path.abspath(".")
 
 sg.theme('Dark Grey 6')  # color theme
 
-def generateSalt():
+def generate_salt():
     return uuid.uuid1()
 
 def salage(encode):
@@ -101,7 +101,7 @@ def activate_or_desactivate_key(name, action):
 
 ## Fin gestionnaire de clé ##
 
-salt = generateSalt()# Génération du sel
+salt = generate_salt()# Génération du sel
 
 
 #columns for tabs layouts
@@ -324,30 +324,55 @@ while True:
 
     ## Evènements du gestionnaire de clé ##
 
-    # Evènement pour générer une clé
+    #Création d'une clé
     if event == 'create_key':
-        if values['display_create'] != '':
-            bits = values['AES_Bits']
-            key = generate_key(bits)
-            nameKey = values['display_create']
-            add_key(nameKey, key)
-            window['gestion_list'].update(values=get_keys_name())
+        bits = values['AES_Bits']
+        key = generate_key(bits)
+        nameKey = values['display_create']
+        add_key(nameKey, key)
 
-
-    if event == 'disable':
-        selected_key = window['gestion_list'].get()
-        activate_or_desactivate_key(selected_key[0], False)
-        window['gestion_list'].update(values=get_keys_name())
-
-
+    #Désactivation d'une clé AES
     if event == 'activate':
-        selected_key = window['gestion_list'].get()
+        try:
+            selected_aes = window['gestion_list'].get()
+            aes_complete = window['gestion_list'].get_list_values()
+            aes_complete = list(aes_complete)
+            i = 0
+            for x in aes_complete:
+                if x == selected_aes[0] and '(disabled)' in selected_aes[0]:
+                    aes_complete[i] = selected_aes[0].replace('(disabled)', '')
+                i = i + 1
+            lists = window['gestion_list'].update(values=aes_complete)
+        except:
+            sg.Popup('Vous n\'avez pas selectioné de clé', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
 
-        if re.search(' - Clé désactivé', selected_key[0]):
-            selected_key = selected_key[0].replace(' - Clé désactivé', '')
 
-        activate_or_desactivate_key(selected_key, True)
-        window['gestion_list'].update(values=get_keys_name())
+
+    #Désactivation d'une clé AES
+    if event == 'disable':
+        try:
+            selected_aes = window['gestion_list'].get()
+            aes_complete = window['gestion_list'].get_list_values()
+            aes_complete = list(aes_complete)
+            y = 0
+            for x in aes_complete:
+                if x == selected_aes[0]:
+                    aes_complete[y] = '(disabled)' + selected_aes[0]
+                y = y + 1
+            lists = window['gestion_list'].update(values=aes_complete)
+        except:
+            sg.Popup('Vous n\'avez pas selectioné de clé', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+
+    #Suppression d'une clé AES
+    if event == 'delete':
+        try:
+            deleted_aes = window['gestion_list'].get()
+            deleted_aes = deleted_aes[0]
+            #supprimer dans le tableau de variable
+        except:
+            sg.Popup('Vous n\'avez pas selectioné de clé', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+
+
 
 
 window.close()
