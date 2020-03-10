@@ -155,9 +155,9 @@ col4_chiffr = [
 ]
 
 col_gestion = [
-    [sg.Button('Activer la clé',  button_color=('black', 'gray'), key='activate', enable_events='true')],
-    [sg.Button('Désactiver la clé', button_color=('black', 'gray'), key='disable', enable_events='true')],
-    [sg.Button('Supprimer la clé ', button_color=('black', 'red'), key='delete', enable_events='true')]
+    [sg.Button('Activer la clé', button_color=('black', 'lightgreen'), key='activate', enable_events='true', size=(13,1))],
+    [sg.Button('Désactiver la clé', button_color=('black', 'gray'), key='disable', enable_events='true',size=(13,1))],
+    [sg.Button('Supprimer la clé ', button_color=('black', 'red'), key='delete', enable_events='true', size=(13,1))]
 ]
 
 
