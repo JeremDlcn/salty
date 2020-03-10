@@ -11,7 +11,7 @@ actual_folder = os.path.abspath(".")
 
 sg.theme('Dark Grey 6')  # color theme
 
-def generateSalt():
+def generate_salt():
     return uuid.uuid1()
 
 def salage(encode):
@@ -45,7 +45,7 @@ def generate_key(bits):
 def is_valid_key(dataFile, keyName):
     for val in dataFile:
         if val['name'] == keyName:
-            return False
+            raise ValueError('La clé existe déjà')
     return True
 
 def get_keys():
@@ -111,7 +111,7 @@ def delete_key(name):
 
 ## Fin gestionnaire de clé ##
 
-salt = generateSalt()# Génération du sel
+salt = generate_salt()# Génération du sel
 
 
 #columns for tabs layouts
@@ -124,7 +124,7 @@ col1_hash = [
     [sg.T()],
     [sg.T('Liste des hash')],
     [sg.Listbox(values=('SHA-1', 'SHA-256', 'SHA-512', 'MD5', 'blake2b'),  size=(30, 5), default_values=["SHA-1"],
- select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='hash_list'), sg.Checkbox('appliquer un salage', key="salage")],
+ select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', no_scrollbar=True, key='hash_list'), sg.Checkbox('appliquer un salage', key="salage")],
     [sg.Text('Hash actuel: SHA-1', size=(17, 1), relief=sg.RELIEF_RIDGE, key='display_hash', background_color='grey')]
 ]
 
@@ -141,7 +141,7 @@ col2_hash = [
 col1_chiffr = [
     [sg.T('Liste des hash')],
     [sg.Listbox(values=('SHA-1', 'SHA-256', 'SHA-512', 'MD5', 'blake2b'),  size=(30, 5), default_values=["SHA-1"],
- select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='hash_list_chiffr')],
+ select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', no_scrollbar=True, key='hash_list_chiffr')],
     [sg.Text('Hash actuel: SHA-1', size=(17, 1), relief=sg.RELIEF_RIDGE, key='display_hash_chiffr', background_color='grey')]
 ]
 
@@ -312,63 +312,61 @@ while True:
 
 
 
-#Events Gestion des clés AES
-
-    if event == 'now':
-        message_hash = values['message']
-        update_hash = window['hash_list'].get()
-        message_encode = hashing(update_hash[0], message_hash)
-        if values['salage']:
-            new_hash = salage()
-        else:
-            new_hash = message_encode
-
-        if update_file_path != '':
-            file = open(f'{update_file_path}', 'r')
-            file_hash = hashing(update_hash[0], file.read())
-            window['output_hash'].update(file_hash)
-        else:
-            window['output_hash'].update(new_hash)
-
-
-
     ## Evènements du gestionnaire de clé ##
 
-    # Evènement pour générer une clé
+    #Création d'une clé
     if event == 'create_key':
-        if values['display_create'] != '':
+        try:
+            nameKey = values['display_create']
+            assert nameKey != ''
+
             bits = values['AES_Bits']
             key = generate_key(bits)
-            nameKey = values['display_create']
             add_key(nameKey, key)
             window['gestion_list'].update(values=get_keys_name())
+        except AssertionError:
+            sg.Popup('Veuillez nommer la clé pour générer une nouvelle clé', title='Erreur', custom_text=' Ok ',
+                     button_color=('black', 'lightblue'), icon='close.ico')
+        except ValueError:
+            sg.Popup('La clé existe déjà. Veuillez choisir un autre nom de clé', title='Erreur', custom_text=' Ok ',
+                     button_color=('black', 'lightblue'), icon='close.ico')
+
 
 
     if event == 'disable':
         selected_key = window['gestion_list'].get()
-        if selected_key:
+        try:
             activate_or_desactivate_key(selected_key[0], False)
             window['gestion_list'].update(values=get_keys_name())
+        except:
+            sg.Popup('Vous n\'avez pas selectioné de clé', title='Erreur', custom_text=' Ok ',
+                     button_color=('black', 'lightblue'), icon='close.ico')
 
 
     if event == 'activate':
         selected_key = window['gestion_list'].get()
-        if selected_key:
+        try:
             if re.search(' - Clé désactivé', selected_key[0]):
                 selected_key = selected_key[0].replace(' - Clé désactivé', '')
 
             activate_or_desactivate_key(selected_key, True)
             window['gestion_list'].update(values=get_keys_name())
+        except:
+            sg.Popup('Vous n\'avez pas selectioné de clé', title='Erreur', custom_text=' Ok ',
+                     button_color=('black', 'lightblue'), icon='close.ico')
 
 
     if event == 'delete':
         selected_key = window['gestion_list'].get()
-        if selected_key:
+        try:
             selected_key = selected_key[0]
             if re.search(' - Clé désactivé', selected_key):
                 selected_key = selected_key.replace(' - Clé désactivé', '')
             delete_key(selected_key)
             window['gestion_list'].update(values=get_keys_name())
+        except:
+            sg.Popup('Vous n\'avez pas selectioné de clé', title='Erreur', custom_text=' Ok ',
+                     button_color=('black', 'lightblue'), icon='close.ico')
 
 
 window.close()
