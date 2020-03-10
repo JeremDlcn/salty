@@ -5,6 +5,7 @@ import json
 import binascii
 import sys
 import uuid
+import re
 
 actual_folder = os.path.abspath(".")
 
@@ -31,9 +32,6 @@ def hashing(selected_hash, value):
         return hs.blake2b(value).hexdigest()
 
 
-salt = generateSalt()# Génération du sel
-
-
 ## Gestionnaire de clé ##
 def generate_key(bits):
     if bits == '128':
@@ -50,22 +48,60 @@ def is_valid_key(dataFile, keyName):
             return False
     return True
 
-
-def update_key_file(data, name):
+def get_keys():
     with open('keys.json') as keys:
         dataFile = json.load(keys)
-        if is_valid_key(dataFile, name):
-            dataFile.append(data)
-            with open('keys.json', 'w') as keys:
-                json.dump(dataFile, keys)
+    return dataFile
+
+def get_keys_name():
+    names = []
+    dataFile = get_keys()
+
+    for val in dataFile:
+        if val['activate'] == False:
+            names.append(val['name'] + ' - Clé désactivé')
+        else:
+            names.append(val['name'])
+    return names
+
+def write_key_file(data):
+    with open('keys.json', 'w') as keys:
+        json.dump(data, keys)
+
+def update_key_file(data, name):
+    dataFile = get_keys()
+    if is_valid_key(dataFile, name) :
+        dataFile.append(data)
+        with open('keys.json', 'w') as keys:
+            json.dump(dataFile, keys)
 
 
 def add_key(name, key):
     data = {'name': name, 'key': key, 'activate': True}
     update_key_file(data, name)
 
+def activate_or_desactivate_key(name, action):
+    key = {}
+    dataFile = get_keys()
+    counter = 0
+    for val in dataFile:
+        if val['name'] == name:
+            key = val
+            if action:
+                key['activate'] = True
+            elif not action:
+                key['activate'] = False
+            dataFile[counter] = key
+        counter += 1
+
+    write_key_file(dataFile)
+
+
+
+
 ## Fin gestionnaire de clé ##
 
+salt = generateSalt()# Génération du sel
 
 
 #columns for tabs layouts
@@ -150,7 +186,7 @@ gestion_layout = [
     [sg.Text('Création d\'une clé AES'), sg.T(' ' * 42), sg.Text('Nombre de bits')],
     [sg.Input(key='display_create', do_not_clear=False), sg.Combo(['128', '192', '256'], size=(12, 1), default_value='128', enable_events='true', key='AES_Bits'), sg.Button('Créer la clé ', button_color=('black', 'white'), enable_events='true', key='create_key')],
     [sg.Text('Gestionnaire de clé', font='Arial 12')],
-    [sg.Listbox(values=('KAES1', 'KAES2', 'KAES3', 'KAES4', 'KAES5'), size=(30, 14), default_values=["KAES1"],
+    [sg.Listbox(values=(get_keys_name()), size=(30, 5), default_values=["KAES1"],
                 select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='gestion_list'), sg.Column(col_gestion)]
 ]
 
@@ -268,53 +304,50 @@ while True:
 
 #Events Gestion des clés AES
 
-    #Création d'une clé
+    if event == 'now':
+        message_hash = values['message']
+        update_hash = window['hash_list'].get()
+        message_encode = hashing(update_hash[0], message_hash)
+        if values['salage']:
+            new_hash = salage()
+        else:
+            new_hash = message_encode
+
+        if update_file_path != '':
+            file = open(f'{update_file_path}', 'r')
+            file_hash = hashing(update_hash[0], file.read())
+            window['output_hash'].update(file_hash)
+        else:
+            window['output_hash'].update(new_hash)
+
+
+
+    ## Evènements du gestionnaire de clé ##
+
+    # Evènement pour générer une clé
     if event == 'create_key':
-        bits = values['AES_Bits']
-        key = generate_key(bits)
-        nameKey = values['display_create']
-        add_key(nameKey, key)
-
-    #Désactivation d'une clé AES
-    if event == 'activate':
-        try:
-            selected_aes = window['gestion_list'].get()
-            aes_complete = window['gestion_list'].get_list_values()
-            aes_complete = list(aes_complete)
-            i = 0
-            for x in aes_complete:
-                if x == selected_aes[0] and '(disabled)' in selected_aes[0]:
-                    aes_complete[i] = selected_aes[0].replace('(disabled)', '')
-                i = i + 1
-            lists = window['gestion_list'].update(values=aes_complete)
-        except:
-            sg.Popup('Vous n\'avez pas selectioné de clé', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+        if values['display_create'] != '':
+            bits = values['AES_Bits']
+            key = generate_key(bits)
+            nameKey = values['display_create']
+            add_key(nameKey, key)
+            window['gestion_list'].update(values=get_keys_name())
 
 
-
-    #Désactivation d'une clé AES
     if event == 'disable':
-        try:
-            selected_aes = window['gestion_list'].get()
-            aes_complete = window['gestion_list'].get_list_values()
-            aes_complete = list(aes_complete)
-            y = 0
-            for x in aes_complete:
-                if x == selected_aes[0]:
-                    aes_complete[y] = '(disabled)' + selected_aes[0]
-                y = y + 1
-            lists = window['gestion_list'].update(values=aes_complete)
-        except:
-            sg.Popup('Vous n\'avez pas selectioné de clé', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+        selected_key = window['gestion_list'].get()
+        activate_or_desactivate_key(selected_key[0], False)
+        window['gestion_list'].update(values=get_keys_name())
 
-    #Suppression d'une clé AES
-    if event == 'delete':
-        try:
-            deleted_aes = window['gestion_list'].get()
-            deleted_aes = deleted_aes[0]
-            #supprimer dans le tableau de variable
-        except:
-            sg.Popup('Vous n\'avez pas selectioné de clé', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+
+    if event == 'activate':
+        selected_key = window['gestion_list'].get()
+
+        if re.search(' - Clé désactivé', selected_key[0]):
+            selected_key = selected_key[0].replace(' - Clé désactivé', '')
+
+        activate_or_desactivate_key(selected_key, True)
+        window['gestion_list'].update(values=get_keys_name())
 
 
 window.close()
