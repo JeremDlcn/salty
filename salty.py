@@ -282,9 +282,10 @@ while True:
             else:
                 file_hash = file_encode
             window['output_hash'].update(file_hash)
-        except:
+        except UnicodeDecodeError:
+            sg.Popup('Le fichier que vous avez selectionné possède le mauvais format (essayez avec un fichier texte ou ePub)', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+        except FileNotFoundError:
             sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
-
 
 #Events Chiffrement/Déchiffrement
 
@@ -296,9 +297,10 @@ while True:
             file_encode = hashing(update_hash[0], file.read())
             file_hash = salage(file_encode)
             var = '2'
-        except:
+        except UnicodeDecodeError:
+            sg.Popup('Le fichier que vous avez selectionné possède le mauvais format (essayez avec un fichier texte ou ePub)', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+        except FileNotFoundError:
             sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
-
 
     #dechiffrement d'un fichier
     if event == 'dechiffr_now':
@@ -307,7 +309,9 @@ while True:
             update_hash = window['hash_list'].get()
             file_encode = hashing(update_hash[0], file.read())
             file_hash = salage(file_encode)
-        except:
+        except UnicodeDecodeError:
+            sg.Popup('Le fichier que vous avez selectionné possède le mauvais format (essayez avec un fichier texte ou ePub)', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+        except FileNotFoundError:
             sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
 
 
