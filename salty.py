@@ -97,6 +97,16 @@ def activate_or_desactivate_key(name, action):
     write_key_file(dataFile)
 
 
+def delete_key(name):
+    dataFile = get_keys()
+    counter = 0
+    for val in dataFile:
+        if val['name'] == name:
+            del dataFile[counter]
+        counter += 1
+    write_key_file(dataFile)
+
+
 
 
 ## Fin gestionnaire de clé ##
@@ -336,18 +346,29 @@ while True:
 
     if event == 'disable':
         selected_key = window['gestion_list'].get()
-        activate_or_desactivate_key(selected_key[0], False)
-        window['gestion_list'].update(values=get_keys_name())
+        if selected_key:
+            activate_or_desactivate_key(selected_key[0], False)
+            window['gestion_list'].update(values=get_keys_name())
 
 
     if event == 'activate':
         selected_key = window['gestion_list'].get()
+        if selected_key:
+            if re.search(' - Clé désactivé', selected_key[0]):
+                selected_key = selected_key[0].replace(' - Clé désactivé', '')
 
-        if re.search(' - Clé désactivé', selected_key[0]):
-            selected_key = selected_key[0].replace(' - Clé désactivé', '')
+            activate_or_desactivate_key(selected_key, True)
+            window['gestion_list'].update(values=get_keys_name())
 
-        activate_or_desactivate_key(selected_key, True)
-        window['gestion_list'].update(values=get_keys_name())
+
+    if event == 'delete':
+        selected_key = window['gestion_list'].get()
+        if selected_key:
+            selected_key = selected_key[0]
+            if re.search(' - Clé désactivé', selected_key):
+                selected_key = selected_key.replace(' - Clé désactivé', '')
+            delete_key(selected_key)
+            window['gestion_list'].update(values=get_keys_name())
 
 
 window.close()
