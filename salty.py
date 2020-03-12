@@ -6,11 +6,18 @@ import binascii
 import sys
 import uuid
 import re
+import datetime
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad, unpad
+from base64 import b64encode, b64decode
 
 
 actual_folder = os.path.abspath(".")
 
 sg.theme('Dark Grey 6')  # color theme
+
+## Hachage ##
 
 def generate_salt():
     return uuid.uuid1()
@@ -32,15 +39,16 @@ def hashing(selected_hash, value):
     elif selected_hash == 'blake2b':
         return hs.blake2b(value).hexdigest()
 
+######
 
 ## Gestionnaire de clé ##
 def generate_key(bits):
     if bits == '128':
-        return binascii.hexlify(os.urandom(16)).decode()
+        return b64encode(get_random_bytes(16)).decode('utf-8')
     elif bits == '192':
-        return binascii.hexlify(os.urandom(24)).decode()
+        return b64encode(get_random_bytes(24)).decode('utf-8')
     elif bits == '256':
-        return binascii.hexlify(os.urandom(32)).decode()
+        return b64encode(get_random_bytes(32)).decode('utf-8')
 
 
 def is_valid_key(dataFile, keyName):
@@ -68,9 +76,9 @@ def get_keys_name(withoutDesactivateKeys=False):
             names.append(val['name'])
     return names
 
-def write_key_file(data):
-    with open('keys.json', 'w') as keys:
-        json.dump(data, keys, indent=3)
+def write_file(path, data):
+    with open(path, 'w') as file:
+        json.dump(data, file, indent=3)
 
 def update_key_file(data, name):
     dataFile = get_keys()
@@ -81,7 +89,7 @@ def update_key_file(data, name):
 
 
 def add_key(name, key):
-    data = {'name': name, 'key': key, 'activate': True}
+    data = {'name': name, 'key': key, 'activate': True }
     update_key_file(data, name)
 
 def activate_or_desactivate_key(name, action):
@@ -98,7 +106,7 @@ def activate_or_desactivate_key(name, action):
             dataFile[counter] = key
         counter += 1
 
-    write_key_file(dataFile)
+    write_file('keys.json', dataFile)
 
 
 def delete_key(name):
@@ -108,12 +116,54 @@ def delete_key(name):
         if val['name'] == name:
             del dataFile[counter]
         counter += 1
-    write_key_file(dataFile)
-
-
-
+    write_file('keys.json', dataFile)
 
 ## Fin gestionnaire de clé ##
+
+## Chiffrement##
+
+def find_key(name):
+    with open('keys.json') as file:
+        data = json.load(file)
+        for val in data:
+            if val['name'] == name:
+                return val['key']
+
+
+def encrypt(key_name, file_path, data_for_decrypt):
+    file_name = os.path.basename(file_path).split('.')[0]
+    with open(file_path, 'rb') as file:
+        data = file.read()
+
+    key = b64decode(find_key(key_name)) #Récupération de la clé AES
+
+    cipher = AES.new(key, AES.MODE_CBC)
+    ct_bytes = cipher.encrypt(pad(data, AES.block_size)) # Chiffrement des données
+    iv = b64encode(cipher.iv).decode('utf-8') #Encodage en base 64 du vecteur d'initialisation
+    encryptedData = ct_bytes #Encodage en base 64 des données chiffrées
+
+    data_for_decrypt['iv'] = iv
+
+    write_encrypted_file(encryptedData, file_path, file_name, data_for_decrypt)
+
+
+
+def write_encrypted_file(encryptedData, file_path, file_name, data_for_decrypt):
+
+    path = os.path.dirname(file_path) + '/' + str(file_name) + str(datetime.datetime.now()) + '_encrypted/' + str(
+        file_name)
+
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    with open(os.path.join(path, file_name + '.encrypted'), 'wb') as file:
+        file.write(encryptedData)
+
+    write_file(os.path.join(path, 'data-relations.json'), data_for_decrypt)
+
+
+
+###############
 
 salt = generate_salt()# Génération du sel
 
@@ -144,9 +194,9 @@ col2_hash = [
 
 col1_chiffr = [
     [sg.T('Liste des hash')],
-    [sg.Listbox(values=('SHA-1', 'SHA-256', 'SHA-512', 'MD5', 'blake2b'),  size=(30, 5), default_values=["SHA-1"],
+    [sg.Listbox(values=('SHA-1', 'SHA-256', 'SHA-512', 'MD5', 'blake2b'),  size=(30, 5), default_values=["SHA-256"],
  select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', no_scrollbar=True, key='hash_list_chiffr')],
-    [sg.Text('Hash actuel: SHA-1', size=(17, 1), relief=sg.RELIEF_RIDGE, key='display_hash_chiffr', background_color='grey')]
+    [sg.Text('Hash actuel: SHA-256', size=(17, 1), relief=sg.RELIEF_RIDGE, key='display_hash_chiffr', background_color='grey')]
 ]
 
 col2_chiffr = [
@@ -300,7 +350,10 @@ while True:
         with open(update_file_path2) as file:
             hash_method = window['hash_list_chiffr'].get()[0]
             hash_file = hashing(hash_method, salage(file.read()))
+            key_name = window['AES_list'].get()[0]
+            data_for_decrypt = { 'hash_method': hash_method, 'hash': hash_file, 'key_name': key_name, 'salt': salt.bytes.hex(), 'iv': ''}
 
+            encrypt(key_name, update_file_path2, data_for_decrypt)
 
 
 
@@ -330,6 +383,7 @@ while True:
             key = generate_key(bits)
             add_key(nameKey, key)
             window['gestion_list'].update(values=get_keys_name())
+            window['AES_list'].update(values=get_keys_name(True))
             sg.Popup('La clé ' + nameKey + ' a été créée avec succès', title='Succès', custom_text=' Fermer ',
                      button_color=('black', 'lightblue'), icon='close.ico')
         except AssertionError:
@@ -346,6 +400,7 @@ while True:
         try:
             activate_or_desactivate_key(selected_key[0], False)
             window['gestion_list'].update(values=get_keys_name())
+            window['AES_list'].update(values=get_keys_name(True))
         except:
             sg.Popup('Vous n\'avez pas selectioné de clé', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
@@ -359,6 +414,7 @@ while True:
 
             activate_or_desactivate_key(selected_key, True)
             window['gestion_list'].update(values=get_keys_name())
+            window['AES_list'].update(values=get_keys_name(True))
         except:
             sg.Popup('Vous n\'avez pas selectioné de clé', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
@@ -372,6 +428,7 @@ while True:
                 selected_key = selected_key.replace(' - Clé désactivé', '')
             delete_key(selected_key)
             window['gestion_list'].update(values=get_keys_name())
+            window['AES_list'].update(values=get_keys_name(True))
         except:
             sg.Popup('Vous n\'avez pas selectioné de clé', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
