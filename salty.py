@@ -7,6 +7,7 @@ import sys
 import uuid
 import re
 
+
 actual_folder = os.path.abspath(".")
 
 sg.theme('Dark Grey 6')  # color theme
@@ -53,13 +54,16 @@ def get_keys():
         dataFile = json.load(keys)
     return dataFile
 
-def get_keys_name():
+def get_keys_name(withoutDesactivateKeys=False):
     names = []
     dataFile = get_keys()
 
     for val in dataFile:
-        if val['activate'] == False:
-            names.append(val['name'] + ' - Clé désactivé')
+        if val['activate'] is False:
+            if withoutDesactivateKeys is True:
+                pass
+            else:
+                names.append(val['name'] + ' - Clé désactivé')
         else:
             names.append(val['name'])
     return names
@@ -147,7 +151,7 @@ col1_chiffr = [
 
 col2_chiffr = [
     [sg.T('Liste des clés')],
-    [sg.Listbox(values=('KAES1', 'KAES2', 'KAES3', 'KAES4', 'KAES5'), size=(30, 5), default_values=["KAES1"],
+    [sg.Listbox(values=(get_keys_name(True)), size=(30, 5), default_values=["KAES1"],
  select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='AES_list')],
     [sg.Text('Clé actuelle: KAES1', size=(17, 1), relief=sg.RELIEF_RIDGE, key='display_aes', background_color='grey')]
 ]
@@ -250,8 +254,9 @@ while True:
 
     #AES_list
     update_aes = window['AES_list'].get()
-    update_aes = 'Clé actuelle: ' + update_aes[0]
-    window['display_aes'].update(update_aes)
+    if(len(update_aes) > 0):
+        update_aes = 'Clé actuelle: ' + update_aes[0]
+        window['display_aes'].update(update_aes)
 
 
 #Events Hachage
@@ -278,7 +283,7 @@ while True:
             update_hash = window['hash_list'].get()
             file_encode = hashing(update_hash[0], file.read())
             if values['salage']:
-                file_hash = salage(file_encode)
+                file_hash = hashing(update_hash[0], salage(file.read()))
             else:
                 file_hash = file_encode
             window['output_hash'].update(file_hash)
@@ -291,16 +296,13 @@ while True:
 
     #chiffrement d'un fichier
     if event == 'chiffr_now':
-        try:
-            file = open(f'{update_file_path2}', 'r')
-            update_hash = window['hash_list'].get()
-            file_encode = hashing(update_hash[0], file.read())
-            file_hash = salage(file_encode)
-            var = '2'
-        except UnicodeDecodeError:
-            sg.Popup('Le fichier que vous avez selectionné possède le mauvais format (essayez avec un fichier texte ou ePub)', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
-        except FileNotFoundError:
-            sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+
+        with open(update_file_path2) as file:
+            hash_method = window['hash_list_chiffr'].get()[0]
+            hash_file = hashing(hash_method, salage(file.read()))
+
+
+
 
     #dechiffrement d'un fichier
     if event == 'dechiffr_now':
