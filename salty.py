@@ -262,11 +262,11 @@ while True:
             message_hash = values['message']
             assert message_hash != ''
             update_hash = window['hash_list'].get()
-            message_encode = hashing(update_hash[0], message_hash)
+            #message_encode = hashing(update_hash[0], message_hash)
             if values['salage']:
-                new_hash = salage(message_encode)
+                new_hash = hashing(update_hash[0], salage(message_hash))
             else:
-                new_hash = message_encode
+                new_hash = hashing(update_hash[0], message_hash)
             window['output_hash'].update(new_hash)
         except:
             sg.Popup('Vous n\'avez pas écrit de message', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
