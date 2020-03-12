@@ -143,6 +143,8 @@ def encrypt(key_name, file_path, data_for_decrypt):
     encryptedData = ct_bytes #Encodage en base 64 des données chiffrées
 
     data_for_decrypt['iv'] = iv
+    data_for_decrypt['filename'] = file_name
+    data_for_decrypt['extension_file'] = os.path.splitext(file_path)[1]
 
     write_encrypted_file(encryptedData, file_path, file_name, data_for_decrypt)
 
