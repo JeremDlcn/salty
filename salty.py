@@ -348,14 +348,31 @@ while True:
 
     #chiffrement d'un fichier
     if event == 'chiffr_now':
+        try:
+            with open(update_file_path2) as file:
+                hash_method = window['hash_list_chiffr'].get()[0]
+                hash_file = hashing(hash_method, salage(file.read()))
 
-        with open(update_file_path2) as file:
-            hash_method = window['hash_list_chiffr'].get()[0]
-            hash_file = hashing(hash_method, salage(file.read()))
-            key_name = window['AES_list'].get()[0]
-            data_for_decrypt = { 'hash_method': hash_method, 'hash': hash_file, 'key_name': key_name, 'salt': salt.bytes.hex(), 'iv': ''}
+                assert len(window['AES_list'].get()) != 0
+                key_name = window['AES_list'].get()[0]
 
-            encrypt(key_name, update_file_path2, data_for_decrypt)
+                data_for_decrypt = { 'hash_method': hash_method, 'hash': hash_file, 'key_name': key_name, 'salt': salt.bytes.hex(), 'iv': ''}
+
+                encrypt(key_name, update_file_path2, data_for_decrypt)
+
+                sg.Popup(
+                    'Votre fichier a été chiffré avec succès. Un répertoire a été créé au même emplacement que votre fichier source.',
+                    title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+        except UnicodeDecodeError:
+            sg.Popup(
+                'Ce type de format de fichier n\'est pas pris en charge. Veuillez réssayer avec une autre extension de fichier.',
+                title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+        except FileNotFoundError:
+            sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ',
+                     button_color=('black', 'lightblue'), icon='close.ico')
+        except:
+            sg.Popup('Veuillez sélectionner une clé AES pour chiffrer votre fichier', title='Erreur', custom_text=' Ok ',
+                     button_color=('black', 'lightblue'), icon='close.ico')
 
 
 
