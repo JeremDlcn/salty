@@ -147,11 +147,11 @@ def encrypt(key_name, file_path, details):
     write_encrypted_file(encryptedData, file_path, file_name, details)
 
 
-
 def write_encrypted_file(encryptedData, file_path, file_name, details):
+    
+    timestamp = str(datetime.datetime.now()).replace(' ', '').replace(':', '') #avoid errors by removing whitespaces and colon
+    path = os.path.dirname(file_path) + '/' + str(file_name) + timestamp + '_encrypted/' + str(file_name)
 
-    path = os.path.dirname(file_path) + '/' + str(file_name) + str(datetime.datetime.now()) + '_encrypted/' + str(
-        file_name)
 
     if not os.path.exists(path):
         os.makedirs(path)
