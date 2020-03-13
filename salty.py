@@ -11,6 +11,7 @@ from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad, unpad
 from base64 import b64encode, b64decode
+from pathlib import Path
 
 
 actual_folder = os.path.abspath(".")
@@ -133,12 +134,12 @@ def encrypt(key_name, file_path, details):
     with open(file_path, 'rb') as file:
         data = file.read()
 
-    key = b64decode(find_key(key_name)) #Récupération de la clé AES
+    key = b64decode(find_key(key_name))  # Récupération de la clé AES
 
     cipher = AES.new(key, AES.MODE_CBC)
     ct_bytes = cipher.encrypt(pad(data, AES.block_size)) # Chiffrement des données
-    iv = b64encode(cipher.iv).decode('utf-8') #Encodage en base 64 du vecteur d'initialisation
-    encryptedData = ct_bytes #Encodage en base 64 des données chiffrées
+    iv = b64encode(cipher.iv).decode('utf-8')  # Encodage en base 64 du vecteur d'initialisation
+    encryptedData = ct_bytes  # Encodage en base 64 des données chiffrées
 
     details['iv'] = iv
     details['filename'] = file_name
@@ -148,10 +149,9 @@ def encrypt(key_name, file_path, details):
 
 
 def write_encrypted_file(encryptedData, file_path, file_name, details):
-    
-    timestamp = str(datetime.datetime.now()).replace(' ', '').replace(':', '') #avoid errors by removing whitespaces and colon
-    path = os.path.dirname(file_path) + '/' + str(file_name) + timestamp + '_encrypted/' + str(file_name)
 
+    timestamp = str(datetime.datetime.now()).replace(' ', '').replace(':', '')  # avoid errors by removing whitespaces and colon
+    path = str(Path(file_path).parent.parent) + '/encrypted-files/' + str(file_name) + timestamp + '_encrypted/'
 
     if not os.path.exists(path):
         os.makedirs(path)
@@ -279,8 +279,6 @@ while True:
         break
 
 
-
-
     #input browsing file
     update_file_path = values['browse']
     update_file_path2 = values['browse_chiffr']
@@ -312,7 +310,6 @@ while True:
             message_hash = values['message']
             assert message_hash != ''
             update_hash = window['hash_list'].get()
-            #message_encode = hashing(update_hash[0], message_hash)
             if values['salage']:
                 new_hash = hashing(update_hash[0], salage(message_hash))
             else:
@@ -326,11 +323,10 @@ while True:
         try:
             file = open(f'{update_file_path}', 'r')
             update_hash = window['hash_list'].get()
-            file_encode = hashing(update_hash[0], file.read())
             if values['salage']:
                 file_hash = hashing(update_hash[0], salage(file.read()))
             else:
-                file_hash = file_encode
+                file_hash = hashing(update_hash[0], file.read())
             window['output_hash'].update(file_hash)
         except UnicodeDecodeError:
             sg.Popup('Le fichier que vous avez selectionné possède le mauvais format (essayez avec un fichier texte ou ePub)', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
@@ -342,19 +338,22 @@ while True:
     #chiffrement d'un fichier
     if event == 'chiffr_now':
         try:
+
             with open(update_file_path2) as file:
                 hash_method = window['hash_list_chiffr'].get()[0]
+                print(repr(salage(file.read())))
                 hash_file = hashing(hash_method, salage(file.read()))
+                print(repr(hash_file))
 
                 assert len(window['AES_list'].get()) != 0
                 key_name = window['AES_list'].get()[0]
 
-                details = { 'hash_method': hash_method, 'hash': hash_file, 'key_name': key_name, 'salt': salt.bytes.hex(), 'iv': ''}
+                details = {'hash_method': hash_method, 'hash': hash_file, 'key_name': key_name, 'salt': salt.bytes.hex(), 'iv': ''}
 
                 encrypt(key_name, update_file_path2, details)
 
                 sg.Popup(
-                    'Votre fichier a été chiffré avec succès. Un répertoire a été créé au même emplacement que votre fichier source.',
+                    'Votre fichier a été chiffré avec succès. Un répertoire a été créé dans "encrypted-files" et contient le fichier chiffré.',
                     title='Succès', custom_text=' Ok ', button_color=('black', 'lightblue'))
         except UnicodeDecodeError:
             sg.Popup(
@@ -363,35 +362,50 @@ while True:
         except FileNotFoundError:
             sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
-       # except:
-       #     sg.Popup('Veuillez sélectionner une clé AES pour chiffrer votre fichier', title='Erreur', custom_text=' Ok ',
-       #              button_color=('black', 'lightblue'), icon='close.ico')
 
 
 
     #dechiffrement d'un fichier
     if event == 'dechiffr_now':
         try:
-            with open(f'{update_file_path3}', 'rb') as file:
-                data = file.read()
-            with open(f'{update_file_path3}', 'r') as rel:
+            path_dechiffr = Path(update_file_path3).parent
+
+            with open(f'{path_dechiffr}/data-relations.json', 'rb') as rel:
                 details = json.load(rel)
 
+            with open(f"{path_dechiffr}/{details['filename']}.encrypted", "rb") as file:
+                data = file.read()
+
             iv = b64decode(details['iv'])
-            data = b64decode(data)
             key = b64decode(find_key(details['key_name']))
+            take_hash = details['hash']
 
             cipher = AES.new(key, AES.MODE_CBC, iv)
             result = unpad(cipher.decrypt(data), AES.block_size)
-            with open("text.txt", 'w') as test:
-                test.write(result)
+            main_directory = Path(path_dechiffr).parent.parent
+            parent_directory = str(path_dechiffr).replace('\\', '/').split('/')[-1]
 
+            with open(f"{main_directory}/destination/{parent_directory}.txt", 'w') as test:
+                res = result.decode("utf-8")
+                test.write(res)
+                res = res + details['salt']
 
+                hashinged = hashing(details['hash_method'], res)
 
+                if take_hash == hashinged:
+                    sg.Popup(
+                        'Votre fichier a été déchiffré avec succès. Pour le consulter aller dans le dossier "destination"',
+                        title='Succès', custom_text=' Ok ', button_color=('black', 'lightblue'))
+                else:
+                    print(repr(hashinged))
+                    print(repr(res))
+                    sg.Popup(
+                        'Le fichier de déchiffré ne correspond pas au fichier de base',
+                        title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
         except UnicodeDecodeError:
             sg.Popup('Ce type de format de fichier n\'est pas pris en charge. Veuillez réssayer avec une autre extension de fichier.', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
-        except FileNotFoundError:
-            sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+        #except FileNotFoundError:
+         #   sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
 
 
 
