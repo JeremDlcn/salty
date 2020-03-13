@@ -362,7 +362,7 @@ while True:
 
                 sg.Popup(
                     'Votre fichier a été chiffré avec succès. Un répertoire a été créé au même emplacement que votre fichier source.',
-                    title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+                    title='Succès', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
         except UnicodeDecodeError:
             sg.Popup(
                 'Ce type de format de fichier n\'est pas pris en charge. Veuillez réssayer avec une autre extension de fichier.',
