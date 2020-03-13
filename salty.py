@@ -62,15 +62,13 @@ def get_keys():
         dataFile = json.load(keys)
     return dataFile
 
-def get_keys_name(withoutDesactivateKeys=False):
+def get_keys_name(without_desactivate_keys=False):
     names = []
     dataFile = get_keys()
 
     for val in dataFile:
         if val['activate'] is False:
-            if withoutDesactivateKeys is True:
-                pass
-            else:
+            if without_desactivate_keys is False:
                 names.append(val['name'] + ' - Clé désactivé')
         else:
             names.append(val['name'])
@@ -130,7 +128,7 @@ def find_key(name):
                 return val['key']
 
 
-def encrypt(key_name, file_path, data_for_decrypt):
+def encrypt(key_name, file_path, details):
     file_name = os.path.basename(file_path).split('.')[0]
     with open(file_path, 'rb') as file:
         data = file.read()
@@ -142,15 +140,15 @@ def encrypt(key_name, file_path, data_for_decrypt):
     iv = b64encode(cipher.iv).decode('utf-8') #Encodage en base 64 du vecteur d'initialisation
     encryptedData = ct_bytes #Encodage en base 64 des données chiffrées
 
-    data_for_decrypt['iv'] = iv
-    data_for_decrypt['filename'] = file_name
-    data_for_decrypt['extension_file'] = os.path.splitext(file_path)[1]
+    details['iv'] = iv
+    details['filename'] = file_name
+    details['extension_file'] = os.path.splitext(file_path)[1]
 
-    write_encrypted_file(encryptedData, file_path, file_name, data_for_decrypt)
+    write_encrypted_file(encryptedData, file_path, file_name, details)
 
 
 
-def write_encrypted_file(encryptedData, file_path, file_name, data_for_decrypt):
+def write_encrypted_file(encryptedData, file_path, file_name, details):
 
     path = os.path.dirname(file_path) + '/' + str(file_name) + str(datetime.datetime.now()) + '_encrypted/' + str(
         file_name)
@@ -161,7 +159,7 @@ def write_encrypted_file(encryptedData, file_path, file_name, data_for_decrypt):
     with open(os.path.join(path, file_name + '.encrypted'), 'wb') as file:
         file.write(encryptedData)
 
-    write_file(os.path.join(path, 'data-relations.json'), data_for_decrypt)
+    write_file(os.path.join(path, 'data-relations.json'), details)
 
 
 
@@ -203,7 +201,7 @@ col1_chiffr = [
 
 col2_chiffr = [
     [sg.T('Liste des clés')],
-    [sg.Listbox(values=(get_keys_name(True)), size=(30, 5), default_values=["KAES1"],
+    [sg.Listbox(values=(get_keys_name(True)), size=(30, 5), default_values=[get_keys_name()],
  select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='AES_list')],
     [sg.Text('Clé actuelle: KAES1', size=(17, 1), relief=sg.RELIEF_RIDGE, key='display_aes', background_color='grey')]
 ]
@@ -356,9 +354,9 @@ while True:
                 assert len(window['AES_list'].get()) != 0
                 key_name = window['AES_list'].get()[0]
 
-                data_for_decrypt = { 'hash_method': hash_method, 'hash': hash_file, 'key_name': key_name, 'salt': salt.bytes.hex(), 'iv': ''}
+                details = { 'hash_method': hash_method, 'hash': hash_file, 'key_name': key_name, 'salt': salt.bytes.hex(), 'iv': ''}
 
-                encrypt(key_name, update_file_path2, data_for_decrypt)
+                encrypt(key_name, update_file_path2, details)
 
                 sg.Popup(
                     'Votre fichier a été chiffré avec succès. Un répertoire a été créé au même emplacement que votre fichier source.',
@@ -379,12 +377,24 @@ while True:
     #dechiffrement d'un fichier
     if event == 'dechiffr_now':
         try:
-            file = open(f'{update_file_path3}', 'r')
-            update_hash = window['hash_list'].get()
-            file_encode = hashing(update_hash[0], file.read())
-            file_hash = salage(file_encode)
+            with open(f'{update_file_path3}', 'rb') as file:
+                data = file.read()
+            with open(f'{update_file_path3}', 'r') as rel:
+                details = json.load(rel)
+
+            iv = b64decode(details['iv'])
+            data = b64decode(data)
+            key = b64decode(find_key(details['key_name']))
+
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            result = unpad(cipher.decrypt(data), AES.block_size)
+            with open("text.txt", 'w') as test:
+                test.write(result)
+
+
+
         except UnicodeDecodeError:
-            sg.Popup('Le fichier que vous avez selectionné possède le mauvais format (essayez avec un fichier texte ou ePub)', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+            sg.Popup('Ce type de format de fichier n\'est pas pris en charge. Veuillez réssayer avec une autre extension de fichier.', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
         except FileNotFoundError:
             sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
 
