@@ -51,22 +51,22 @@ def generate_key(bits):
         return b64encode(get_random_bytes(32)).decode('utf-8')
 
 
-def is_valid_key(dataFile, keyName):
-    for val in dataFile:
+def is_valid_key(data_file, keyName):
+    for val in data_file:
         if val['name'] == keyName:
             raise ValueError('La clé existe déjà')
     return True
 
 def get_keys():
     with open('keys.json') as keys:
-        dataFile = json.load(keys)
-    return dataFile
+        data_file = json.load(keys)
+    return data_file
 
 def get_keys_name(without_desactivate_keys=False):
     names = []
-    dataFile = get_keys()
+    data_file = get_keys()
 
-    for val in dataFile:
+    for val in data_file:
         if val['activate'] is False:
             if without_desactivate_keys is False:
                 names.append(val['name'] + ' - Clé désactivé')
@@ -79,11 +79,11 @@ def write_file(path, data):
         json.dump(data, file, indent=3)
 
 def update_key_file(data, name):
-    dataFile = get_keys()
-    if is_valid_key(dataFile, name) :
-        dataFile.append(data)
+    data_file = get_keys()
+    if is_valid_key(data_file, name) :
+        data_file.append(data)
         with open('keys.json', 'w') as keys:
-            json.dump(dataFile, keys, indent=3)
+            json.dump(data_file, keys, indent=3)
 
 
 def add_key(name, key):
@@ -92,29 +92,29 @@ def add_key(name, key):
 
 def activate_or_desactivate_key(name, action):
     key = {}
-    dataFile = get_keys()
+    data_file = get_keys()
     counter = 0
-    for val in dataFile:
+    for val in data_file:
         if val['name'] == name:
             key = val
             if action:
                 key['activate'] = True
             elif not action:
                 key['activate'] = False
-            dataFile[counter] = key
+            data_file[counter] = key
         counter += 1
 
-    write_file('keys.json', dataFile)
+    write_file('keys.json', data_file)
 
 
 def delete_key(name):
-    dataFile = get_keys()
+    data_file = get_keys()
     counter = 0
-    for val in dataFile:
+    for val in data_file:
         if val['name'] == name:
-            del dataFile[counter]
+            del data_file[counter]
         counter += 1
-    write_file('keys.json', dataFile)
+    write_file('keys.json', data_file)
 
 ## Fin gestionnaire de clé ##
 
