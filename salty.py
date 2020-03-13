@@ -201,9 +201,9 @@ col1_chiffr = [
 
 col2_chiffr = [
     [sg.T('Liste des clés')],
-    [sg.Listbox(values=(get_keys_name(True)), size=(30, 5), default_values=[get_keys_name()],
+    [sg.Listbox(values=(get_keys_name(True)), size=(30, 5), default_values=[get_keys_name(True)[0]],
  select_mode='LISTBOX_SELECT_MODE_SINGLE', enable_events='true', key='AES_list')],
-    [sg.Text('Clé actuelle: KAES1', size=(17, 1), relief=sg.RELIEF_RIDGE, key='display_aes', background_color='grey')]
+    [sg.Text(f'Clé actuelle: {get_keys_name(True)[0]}', size=(17, 1), relief=sg.RELIEF_RIDGE, key='display_aes', background_color='grey')]
 ]
 
 col3_chiffr = [
@@ -223,8 +223,6 @@ col_gestion = [
     [sg.Button('Désactiver la clé', button_color=('black', 'gray'), key='disable', enable_events='true',size=(13,1))],
     [sg.Button('Supprimer la clé ', button_color=('black', 'red'), key='delete', enable_events='true', size=(13,1))]
 ]
-
-
 
 
 #Layouts for tab
@@ -293,12 +291,10 @@ while True:
 
 
     #Hash Lists
-    update_hash = window['hash_list'].get()
-    update_hash = 'Hash actuel: ' + update_hash[0]
+    update_hash = 'Hash actuel: ' + window['hash_list'].get()[0] #display hash for hash tab
     window['display_hash'].update(update_hash)
 
-    update_hash_chiffr = window['hash_list_chiffr'].get()
-    update_hash_chiffr = 'Hash actuel: ' + update_hash_chiffr[0]
+    update_hash_chiffr = 'Hash actuel: ' + window['hash_list_chiffr'].get()[0]#display hash for chiffr/dechiffr tab
     window['display_hash_chiffr'].update(update_hash_chiffr)
 
 
@@ -313,7 +309,6 @@ while True:
     #hachage d'un message
     if event == 'now':
         try:
-
             message_hash = values['message']
             assert message_hash != ''
             update_hash = window['hash_list'].get()
@@ -360,7 +355,7 @@ while True:
 
                 sg.Popup(
                     'Votre fichier a été chiffré avec succès. Un répertoire a été créé au même emplacement que votre fichier source.',
-                    title='Succès', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+                    title='Succès', custom_text=' Ok ', button_color=('black', 'lightblue'))
         except UnicodeDecodeError:
             sg.Popup(
                 'Ce type de format de fichier n\'est pas pris en charge. Veuillez réssayer avec une autre extension de fichier.',
@@ -368,9 +363,9 @@ while True:
         except FileNotFoundError:
             sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
-        except:
-            sg.Popup('Veuillez sélectionner une clé AES pour chiffrer votre fichier', title='Erreur', custom_text=' Ok ',
-                     button_color=('black', 'lightblue'), icon='close.ico')
+       # except:
+       #     sg.Popup('Veuillez sélectionner une clé AES pour chiffrer votre fichier', title='Erreur', custom_text=' Ok ',
+       #              button_color=('black', 'lightblue'), icon='close.ico')
 
 
 
