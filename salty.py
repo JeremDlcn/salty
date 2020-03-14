@@ -419,7 +419,7 @@ while True:
             window['AES_list'].update(values=get_keys_name(True))
 
             sg.Popup('La clé ' + nameKey + ' a été créée avec succès', title='Succès', custom_text=' Fermer ',
-                     button_color=('black', 'lightblue'), icon='close.ico')
+                     button_color=('black', 'lightblue'))
         except AssertionError:
             sg.Popup('Veuillez nommer la clé pour générer une nouvelle clé', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')

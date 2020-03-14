@@ -1,0 +1,9 @@
+{
+   "hash_method": "SHA-256",
+   "hash": "784c00b797deb93004ce004d0cc21b96012712c6f8d3373ba71b0589bb8751ad",
+   "key_name": "cle_test",
+   "salt": "fbb38944663b11eaba28b0c090639fea",
+   "iv": "pZk0UIviEkS1oIB42EDpVA==",
+   "filename": "Jules Verne -Voyage au centre de la Terre",
+   "extension_file": ".txt"
+}
