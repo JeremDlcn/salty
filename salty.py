@@ -343,7 +343,6 @@ while True:
                 hash_method = window['hash_list_chiffr'].get()[0]
                 source.seek(0)
                 content = source.read()
-                print(content)
                 hash_file = hashing(hash_method, salage(content))
                 assert len(window['AES_list'].get()) != 0
                 key_name = window['AES_list'].get()[0]
@@ -386,18 +385,18 @@ while True:
 
             with open(f"{Path().absolute()}/destination/{parent_directory}.txt", 'w') as test:
                 res = result.decode("utf-8")
-                test.write(res)
                 res = res + details['salt']
-                check_hash = hashing(details['hash_method'], res)
+                check_hash = hashing(details['hash_method'], res)  #haché le contenu déchiffré avec les details du fichier chiffré
 
                 if take_hash == check_hash:
-                    sg.Popup(
-                        'Votre fichier a été déchiffré avec succès. Pour le consulter aller dans le dossier "destination"',
+                    test.write(res)  # écrire le texte déchiffré dans le fichier de destination
+
+                    sg.Popup('Votre fichier a été déchiffré avec succès. Pour le consulter aller dans le dossier "destination"',
                         title='Succès', custom_text=' Ok ', button_color=('black', 'lightblue'))
                 else:
-                    sg.Popup(
-                        'Le fichier de déchiffré ne correspond pas au fichier de base',
+                    sg.Popup('Le fichier de déchiffré ne correspond pas au fichier de base',
                         title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+
         except UnicodeDecodeError:
             sg.Popup('Ce type de format de fichier n\'est pas pris en charge. Veuillez réssayer avec une autre extension de fichier.', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
         except FileNotFoundError:
@@ -418,6 +417,7 @@ while True:
             add_key(nameKey, key)
             window['gestion_list'].update(values=get_keys_name())
             window['AES_list'].update(values=get_keys_name(True))
+
             sg.Popup('La clé ' + nameKey + ' a été créée avec succès', title='Succès', custom_text=' Fermer ',
                      button_color=('black', 'lightblue'), icon='close.ico')
         except AssertionError:
