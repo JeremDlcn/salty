@@ -1,0 +1,9 @@
+{
+   "hash_method": "SHA-256",
+   "hash": "25ea863cf21238e238a7fca9556cc2d90422b25f28a0dedf1bec3a0af92464eb",
+   "key_name": "cle_test",
+   "salt": "bd9e72b9660b11eab2cab0c090639fea",
+   "iv": "OCnfGAzZqkZ7GsZEiQjGHA==",
+   "filename": "example_text",
+   "extension_file": ".txt"
+}

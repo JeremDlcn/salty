@@ -339,15 +339,14 @@ while True:
     if event == 'chiffr_now':
         try:
 
-            with open(update_file_path2) as file:
+            with open(f"{update_file_path2}", 'r') as source:
                 hash_method = window['hash_list_chiffr'].get()[0]
-                print(repr(salage(file.read())))
-                hash_file = hashing(hash_method, salage(file.read()))
-                print(repr(hash_file))
-
+                source.seek(0)
+                content = source.read()
+                print(content)
+                hash_file = hashing(hash_method, salage(content))
                 assert len(window['AES_list'].get()) != 0
                 key_name = window['AES_list'].get()[0]
-
                 details = {'hash_method': hash_method, 'hash': hash_file, 'key_name': key_name, 'salt': salt.bytes.hex(), 'iv': ''}
 
                 encrypt(key_name, update_file_path2, details)
@@ -389,7 +388,6 @@ while True:
                 res = result.decode("utf-8")
                 test.write(res)
                 res = res + details['salt']
-
                 check_hash = hashing(details['hash_method'], res)
 
                 if take_hash == check_hash:
@@ -397,15 +395,13 @@ while True:
                         'Votre fichier a été déchiffré avec succès. Pour le consulter aller dans le dossier "destination"',
                         title='Succès', custom_text=' Ok ', button_color=('black', 'lightblue'))
                 else:
-                    print(repr(check_hash))
-                    print(repr(res))
                     sg.Popup(
                         'Le fichier de déchiffré ne correspond pas au fichier de base',
                         title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
         except UnicodeDecodeError:
             sg.Popup('Ce type de format de fichier n\'est pas pris en charge. Veuillez réssayer avec une autre extension de fichier.', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
-        #except FileNotFoundError:
-         #   sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
+        except FileNotFoundError:
+            sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
 
 
 
