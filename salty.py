@@ -145,13 +145,13 @@ def encrypt(key_name, file_path, details):
     details['filename'] = file_name
     details['extension_file'] = os.path.splitext(file_path)[1]
 
-    write_encrypted_file(encryptedData, file_path, file_name, details)
+    write_encrypted_file(encryptedData, file_name, details)
 
 
-def write_encrypted_file(encryptedData, file_path, file_name, details):
+def write_encrypted_file(encryptedData, file_name, details):
 
-    timestamp = str(datetime.datetime.now()).replace(' ', '').replace(':', '')  # avoid errors by removing whitespaces and colon
-    path = str(Path(file_path).parent.parent) + '/encrypted-files/' + str(file_name) + timestamp + '_encrypted/'
+    timestamp = str(datetime.datetime.now()).replace(' ', '').replace(':', '')  # avoid errors by removing whitespaces and colons
+    path = str(Path().absolute()) + '/encrypted-files/' + str(file_name) + timestamp + '_encrypted/'
 
     if not os.path.exists(path):
         os.makedirs(path)
@@ -382,22 +382,22 @@ while True:
 
             cipher = AES.new(key, AES.MODE_CBC, iv)
             result = unpad(cipher.decrypt(data), AES.block_size)
-            main_directory = Path(path_dechiffr).parent.parent
+
             parent_directory = str(path_dechiffr).replace('\\', '/').split('/')[-1]
 
-            with open(f"{main_directory}/destination/{parent_directory}.txt", 'w') as test:
+            with open(f"{Path().absolute()}/destination/{parent_directory}.txt", 'w') as test:
                 res = result.decode("utf-8")
                 test.write(res)
                 res = res + details['salt']
 
-                hashinged = hashing(details['hash_method'], res)
+                check_hash = hashing(details['hash_method'], res)
 
-                if take_hash == hashinged:
+                if take_hash == check_hash:
                     sg.Popup(
                         'Votre fichier a été déchiffré avec succès. Pour le consulter aller dans le dossier "destination"',
                         title='Succès', custom_text=' Ok ', button_color=('black', 'lightblue'))
                 else:
-                    print(repr(hashinged))
+                    print(repr(check_hash))
                     print(repr(res))
                     sg.Popup(
                         'Le fichier de déchiffré ne correspond pas au fichier de base',
