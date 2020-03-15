@@ -15,12 +15,23 @@ Salty a besoin de différents modules afin de pouvoir fonctionné
 > pip install pycryptodome
 
 ## Organisation des dossier
-le dossier contient plusieurs dossiers et fichier qui sont utiles pour le projet
-| - Salty.py
-| - **source**  // contient les fichiers non chiffrés
-| - **encrypted-files**  // contient les fichiers et leurs détails une fois chiffrés
-| - **destination**  // contient les fichiers une fois déchiffrés par le logiciel
-| - *logo.png*  // logo visible sur l'interface
-| - *salty-icon.ico*  // icône de l'application (disponible uniquement sur Windows)
-| - *close.ico*  //icône pour les messages d'erreurs
-| - ***keys.json***  // fichier contenant les clés AES que l'on peut gérer dans le logiciel
+
+```bash
+├── close.ico 
+├── destination
+├── encrypted-files
+├── keys.json
+├── logo.png
+├── salty-icon.ico
+├── salty.py
+└── source
+```
+
+- **salty.py** : L'exécutable Python 
+- **source**  // contient les fichiers non chiffrés
+- **encrypted-files**  // contient les fichiers et leurs détails une fois chiffrés
+- **destination**  // contient les fichiers une fois déchiffrés par le logiciel
+- *logo.png*  // logo visible sur l'interface
+- *salty-icon.ico*  // icône de l'application (disponible uniquement sur Windows)
+- *close.ico*  //icône pour les messages d'erreurs
+- ***keys.json***  // fichier contenant les clés AES que l'on peut gérer dans le logiciel
