@@ -478,9 +478,9 @@ while True:
 
             with open(f"{Path().absolute()}/destination/{parent_directory}.txt", 'w') as test:
                 res = result.decode("utf-8")
-                res = res + details['salt']
+                res_and_salt = res + details['salt']
                 check_hash = hashing(details['hash_method'],
-                                     res)  # haché le contenu déchiffré avec les details du fichier chiffré
+                                     res_and_salt)  # haché le contenu déchiffré avec les details du fichier chiffré
 
                 if take_hash == check_hash:
                     test.write(res)  # écrire le texte déchiffré dans le fichier de destination
