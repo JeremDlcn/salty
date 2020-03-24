@@ -393,32 +393,40 @@ while True:
         update_aes = 'Clé actuelle: ' + update_aes[0]
         window['display_aes'].update(update_aes)
 
-    # Events Hachage
-    # hachage d'un message
+    # Events hash
+    # Hash of a message
     if event == 'now':
         try:
+            # Get the message and the algorithm to hash
             message_hash = values['message']
             assert message_hash != ''
             update_hash = window['hash_list'].get()
+
+            # Add salt to hash or not
             if values['salage']:
                 new_hash = hashing(update_hash[0], salage(message_hash))
             else:
                 new_hash = hashing(update_hash[0], message_hash)
+
             window['output_hash'].update(new_hash)
         except:
             sg.Popup('Vous n\'avez pas écrit de message', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
 
-    # hachage de fichier
+    # Hash of a file
     if event == 'file_now':
         try:
+            # Read data of file and get the algorithm to hash
             file = open(f'{update_file_path}', 'r')
             update_hash = window['hash_list'].get()
+
+            # Add salt to hash or not
             if values['salage']:
                 file_hash = hashing(update_hash[0], salage(file.read()))
             else:
                 file_hash = hashing(update_hash[0], file.read())
             window['output_hash'].update(file_hash)
+
         except UnicodeDecodeError:
             sg.Popup(
                 'Le fichier que vous avez selectionné possède le mauvais format (essayez avec un fichier texte ou ePub)',
@@ -427,19 +435,23 @@ while True:
             sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
 
-    # Events Chiffrement/Déchiffrement
+    # Events Encryption / Decryption
 
-    # chiffrement d'un fichier
+    # Encrypt file
     if event == 'chiffr_now':
         try:
-
             with open(f"{update_file_path2}", 'r') as source:
+                # Read file to encrypt and get the hash method
                 hash_method = window['hash_list_chiffr'].get()[0]
                 source.seek(0)
                 content = source.read()
                 hash_file = hashing(hash_method, salage(content))
+
+                # Get the aes key
                 assert len(window['AES_list'].get()) != 0
                 key_name = window['AES_list'].get()[0]
+
+                # Create details dictionnary for decrypt the file after encryption
                 details = {'hash_method': hash_method, 'hash': hash_file, 'key_name': key_name,
                            'salt': salt.bytes.hex(), 'iv': ''}
 
@@ -456,11 +468,12 @@ while True:
             sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
 
-    # dechiffrement d'un fichier
+    # Decrypt file
     if event == 'dechiffr_now':
         try:
             path_dechiffr = Path(update_file_path3).parent
 
+            # Get the details for decrypt file (hash method, name of key...) and read encrypted file
             with open(f'{path_dechiffr}/data-relations.json', 'rb') as rel:
                 details = json.load(rel)
 
@@ -472,18 +485,19 @@ while True:
             take_hash = details['hash']
 
             cipher = AES.new(key, AES.MODE_CBC, iv)
-            result = unpad(cipher.decrypt(data), AES.block_size)
+            result = unpad(cipher.decrypt(data), AES.block_size) # Decrypt file and get data
 
             parent_directory = str(path_dechiffr).replace('\\', '/').split('/')[-1]
 
             with open(f"{Path().absolute()}/destination/{parent_directory}.txt", 'w') as test:
                 res = result.decode("utf-8")
+                # Check the hash
                 res_and_salt = res + details['salt']
                 check_hash = hashing(details['hash_method'],
-                                     res_and_salt)  # haché le contenu déchiffré avec les details du fichier chiffré
+                                     res_and_salt)
 
                 if take_hash == check_hash:
-                    test.write(res)  # écrire le texte déchiffré dans le fichier de destination
+                    test.write(res)  # Write decrypted data in file
 
                     sg.Popup(
                         'Votre fichier a été déchiffré avec succès. Pour le consulter aller dans le dossier "destination"',
@@ -500,17 +514,20 @@ while True:
             sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
 
-    ## Evènements du gestionnaire de clé ##
+    ## Events key manager ##
 
-    # Création d'une clé
+    # Add a key
     if event == 'create_key':
         try:
+            # Get the name and bits for create key
             nameKey = values['display_create']
             assert nameKey != ''
-
             bits = values['AES_Bits']
+
+            # Generate and add key to the keys.json file
             key = generate_key(bits)
             add_key(nameKey, key)
+
             window['gestion_list'].update(values=get_keys_name())
             window['AES_list'].update(values=get_keys_name(True))
 
@@ -523,6 +540,7 @@ while True:
             sg.Popup('La clé existe déjà. Veuillez choisir un autre nom de clé', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
 
+    # Desactivate a key
     if event == 'disable':
         selected_key = window['gestion_list'].get()
         try:
@@ -533,6 +551,7 @@ while True:
             sg.Popup('Vous n\'avez pas selectioné de clé', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
 
+    # Activate a key
     if event == 'activate':
         selected_key = window['gestion_list'].get()
         try:
@@ -546,6 +565,7 @@ while True:
             sg.Popup('Vous n\'avez pas selectioné de clé', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
 
+    # Delete a key
     if event == 'delete':
         selected_key = window['gestion_list'].get()
         try:
