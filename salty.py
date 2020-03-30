@@ -32,8 +32,9 @@ def salage(encode):
     :param encode: data
     :return: concatenation of message and salt
     """
-    guerande = salt.bytes.hex()
-    return encode + guerande
+
+    guerande = bytes(salt.bytes.hex(), 'utf-8')
+    return b''.join([encode, guerande])
 
 
 def hashing(selected_hash, value):
@@ -43,7 +44,10 @@ def hashing(selected_hash, value):
     :param value: Value to hash
     :return: String hash
     """
-    value = bytes(value, 'utf-8')
+
+    if(type(value) == str):
+        value = bytes(value, 'utf-8')
+
     if selected_hash == 'SHA-1':
         return hs.sha1(value).hexdigest()
     elif selected_hash == 'SHA-256':
@@ -209,7 +213,7 @@ def encrypt(key_name, file_path, details):
     :param details: All data necessary for encryption / decryption
     """
     # Get data of the file to encrypt
-    file_name = os.path.basename(file_path).split('.')[0]
+    file_name = str(os.path.basename(file_path).split('.')[0]).replace(' ', '_')
     with open(file_path, 'rb') as file:
         data = file.read()
 
@@ -237,7 +241,7 @@ def write_encrypted_file(encryptedData, file_name, details):
     """
     timestamp = str(datetime.datetime.now()).replace(' ', '').replace(':',
                                                                       '')  # avoid errors by removing whitespaces and colons
-    path = str(Path().absolute()) + '/encrypted-files/' + str(file_name) + timestamp + '_encrypted/'
+    path = str(Path().absolute()) + '/encrypted-files/' + file_name + timestamp + '_encrypted/'
 
     if not os.path.exists(path):
         os.makedirs(path)
@@ -253,7 +257,6 @@ def write_encrypted_file(encryptedData, file_name, details):
 ###############
 
 salt = generate_salt()  # Génération du sel
-
 # columns for tabs layouts
 # ------------------------
 col1_hash = [
@@ -417,7 +420,7 @@ while True:
     if event == 'file_now':
         try:
             # Read data of file and get the algorithm to hash
-            file = open(f'{update_file_path}', 'r')
+            file = open(f'{update_file_path}', 'rb')
             update_hash = window['hash_list'].get()
 
             # Add salt to hash or not
@@ -440,10 +443,9 @@ while True:
     # Encrypt file
     if event == 'chiffr_now':
         try:
-            with open(f"{update_file_path2}", 'r') as source:
+            with open(f"{update_file_path2}", 'rb') as source:
                 # Read file to encrypt and get the hash method
                 hash_method = window['hash_list_chiffr'].get()[0]
-                source.seek(0)
                 content = source.read()
                 hash_file = hashing(hash_method, salage(content))
 
@@ -489,12 +491,13 @@ while True:
 
             parent_directory = str(path_dechiffr).replace('\\', '/').split('/')[-1]
 
-            with open(f"{Path().absolute()}/destination/{parent_directory}.txt", 'w') as test:
-                res = result.decode("utf-8")
+            with open(f"{Path().absolute()}/destination/{parent_directory}{details['extension_file']}", 'wb') as test:
+                res = result
                 # Check the hash
-                res_and_salt = res + details['salt']
+                res_and_salt = b''.join([res, bytes(details['salt'], 'utf-8')])
                 check_hash = hashing(details['hash_method'],
                                      res_and_salt)
+
 
                 if take_hash == check_hash:
                     test.write(res)  # Write decrypted data in file
@@ -503,7 +506,7 @@ while True:
                         'Votre fichier a été déchiffré avec succès. Pour le consulter aller dans le dossier "destination"',
                         title='Succès', custom_text=' Ok ', button_color=('black', 'lightblue'))
                 else:
-                    sg.Popup('Le fichier de déchiffré ne correspond pas au fichier de base',
+                    sg.Popup('Le fichier déchiffré ne correspond pas au fichier de base',
                              title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
 
         except UnicodeDecodeError:
