@@ -430,10 +430,6 @@ while True:
                 file_hash = hashing(update_hash[0], file.read())
             window['output_hash'].update(file_hash)
 
-        except UnicodeDecodeError:
-            sg.Popup(
-                'Le fichier que vous avez selectionné possède le mauvais format (essayez avec un fichier texte ou ePub)',
-                title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
         except FileNotFoundError:
             sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
@@ -462,10 +458,6 @@ while True:
                 sg.Popup(
                     'Votre fichier a été chiffré avec succès. Un répertoire a été créé dans "encrypted-files" et contient le fichier chiffré.',
                     title='Succès', custom_text=' Ok ', button_color=('black', 'lightblue'))
-        except UnicodeDecodeError:
-            sg.Popup(
-                'Ce type de format de fichier n\'est pas pris en charge. Veuillez réssayer avec une autre extension de fichier.',
-                title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
         except FileNotFoundError:
             sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
@@ -509,10 +501,6 @@ while True:
                     sg.Popup('Le fichier déchiffré ne correspond pas au fichier de base',
                              title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
 
-        except UnicodeDecodeError:
-            sg.Popup(
-                'Ce type de format de fichier n\'est pas pris en charge. Veuillez réssayer avec une autre extension de fichier.',
-                title='Erreur', custom_text=' Ok ', button_color=('black', 'lightblue'), icon='close.ico')
         except FileNotFoundError:
             sg.Popup('Vous n\'avez pas selectioné de fichier', title='Erreur', custom_text=' Ok ',
                      button_color=('black', 'lightblue'), icon='close.ico')
