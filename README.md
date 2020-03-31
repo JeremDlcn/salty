@@ -5,8 +5,9 @@ Salty est une application avec une interface graphique permet de hacher,  chiffr
 ##Utilisation des executables
 Salty sous forme d'executable fonctionne sans avoir besoin de python ou de tout autre programme
 
+
+## Utilisation du fichier python
 Si vous souhaitez utilisé le fichier python contenant le code, il faudra installer des modules
-## Installation des modules
 Salty.py a besoin de différents modules afin de pouvoir fonctionner
 
 **PySimpleGUI :** bibliothèque permettant de créer l'interface graphique  
