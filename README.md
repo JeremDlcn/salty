@@ -2,7 +2,7 @@
 # Salty
 Salty est une application avec une interface graphique permet de hacher,  chiffrer,  déchiffrer et gérer ses clé AES en toute simplicité afin de sécuriser ses fichiers plus facilement.
 
-##Utilisation des executables
+## Utilisation des executables
 Salty sous forme d'executable fonctionne sans avoir besoin de python ou de tout autre programme
 
 
